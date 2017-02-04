@@ -41,9 +41,5 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 .idea/
-CMakeLists.txt
 cmake-build-debug/
-main.cpp
-types.hpp
-utils.cpp
-utils.hpp
+
