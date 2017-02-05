@@ -2,36 +2,26 @@
 // Created by saeid on 04.02.17.
 //
 
-#include "../include/utils.hpp"
-#include "../include/LameWrapper.hpp"
+#include "utils.hpp"
 
 //Platform specific includes
 #include <sys/stat.h>
 #include <dirent.h>
-#include <sys/types.h>
 #include <strings.h>
 #include <iostream>
+#include <regex>
 
 namespace cinemo {
 
     /**
      * @brief Valid wave file extension
      */
-    const char *extWave = "wav";
-    /**
-     * @brief Valid mp3 file extension
-     */
-    const char *extMp3 = "mp3";
-
+    const char* extWave = "wav";
 
     bool isValidWorkDirectory(const string &dir) {
         struct stat st;
         //TODO check for existence of WAV files right here...
         return stat(dir.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
-    }
-
-    bool containsValidWaveFiles(const string &dir) {
-        //
     }
 
     bool getWorkingDirectory(int argc, char *argv[], string &dir) {
@@ -50,8 +40,19 @@ namespace cinemo {
         dirent *dirIt = nullptr;
         while ((dirIt = readdir(workDir)) != nullptr) {
             if (isValidFileType(dirIt->d_name, extWave)) {
-                //TODO check if mp3 file with same name exist or not!
-                workFiles.push_back(LameWrapper(dir, dirIt->d_name));
+                try {
+                    LameWrapper lw = LameWrapper(dir, dirIt->d_name);
+                    wave::Wave* waveInfo = new wave::Wave(lw.getFullPath());
+                    lw.setWaveInfo(waveInfo);
+                    workFiles.push_back(lw);
+                } catch (std::exception&) {
+                    //FIXME it only throws if file cannot be opened
+                    //so should not rely on throws for validation ...
+                    std::cout << dirIt->d_name << " is not a valid WAV file!"
+                              << std::endl;
+                    continue;
+                }
+
             }
         }
 
@@ -74,5 +75,13 @@ namespace cinemo {
         }
 
         return isValid;
+    }
+
+    string changeExt(const string& in, const string& ext) {
+        //FIXME currently wav is hardcoded
+        std::regex regex("^(.*)\\.wav$");
+        //FIXME only works with GCC 4.9+ (e.g. not with 4.8)
+        return std::regex_replace(in, regex, string("$1." + ext).c_str());
+        //return string(in + ".mp3");
     }
 }

@@ -41,6 +41,7 @@ namespace cinemo {
 
     bool getWaveFiles(const string &dir, vector<LameWrapper> &workFiles);
 
+    string changeExt(const string& in, const string& ext);
 }
 
 #endif //CINEMO_UTILS_HPP

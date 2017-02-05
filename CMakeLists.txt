@@ -1,14 +1,32 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.5)
 project(cinemo)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES src/main.cpp src/utils.cpp include/utils.hpp src/LameWrapper.cpp include/LameWrapper.hpp)
-add_executable(cinemo ${SOURCE_FILES})
+#platform specific stuff
+if (WIN32)
+    add_definitions(-DWIN32)
+else () #asume linux
+    add_definitions(-DLINUX)
+endif ()
 
+#headers and sources
+include_directories(include)
+set(SOURCE_FILES
+        src/main.cpp
+        src/utils.cpp
+        src/LameWrapper.cpp
+        src/wave.cpp)
+
+add_executable(wav2mp3 ${SOURCE_FILES})
+
+#Finding lame library
+set(CMAKE_MODULE_PATH {$CMAKE_MODULE_PATH} cmake)
 find_package(mp3lame REQUIRED)
 if (MP3LAME_FOUND)
     set(EXTRA_LIBRARIES ${EXTRA_LIBRARIES} ${MP3LAME_LIBRARY})
     message(STATUS "MP3LAME Library was found in " ${MP3LAME_LIBRARY})
-    target_link_libraries(cinemo mp3lame)
+    target_link_libraries(wav2mp3 mp3lame)
+elseif (!MP3LAM_FOUND)
+    message(ERROR "MP3LAME is necessary!")
 endif (MP3LAME_FOUND)

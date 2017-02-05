@@ -6,8 +6,11 @@
 #define CINEMO_LAMEWRAPPER_HPP
 
 #include <string>
+//TODO forward declare
+#include "wave.h"
 
 using std::string;
+using namespace wave;
 
 namespace cinemo {
 
@@ -16,6 +19,8 @@ namespace cinemo {
         string dir;
         string file;
         string path;
+        //TODO use std unique ptr
+        Wave* waveFile;
         bool isBusy;
         bool isDone;
 
@@ -33,6 +38,12 @@ namespace cinemo {
         string getFileName() const { return file; }
 
         bool isConverting() const { return isBusy; }
+
+        Wave* getWaveInfo() const { return waveFile; }
+
+        void setWaveInfo(Wave* wave);
+
+        void printWaveInfo();
     };
 }
 
