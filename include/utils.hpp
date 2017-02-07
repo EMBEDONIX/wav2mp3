@@ -39,6 +39,8 @@ namespace cinemo {
 
     bool isValidFileType(const string &file, const char *ext);
 
+    int getFileSize(const string& file);
+
     bool getWaveFiles(const string &dir, vector<LameWrapper> &workFiles);
 
     string changeExt(const string& in, const string& ext);

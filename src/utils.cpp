@@ -4,6 +4,8 @@
 
 #include "utils.hpp"
 
+#include <fstream>
+
 //Platform specific includes
 #include <sys/stat.h>
 #include <dirent.h>
@@ -18,34 +20,42 @@ namespace cinemo {
      */
     const char* extWave = "wav";
 
-    bool isValidWorkDirectory(const string &dir) {
+    bool isValidWorkDirectory(const string& dir) {
         struct stat st;
         //TODO check for existence of WAV files right here...
         return stat(dir.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
     }
 
-    bool getWorkingDirectory(int argc, char *argv[], string &dir) {
+    bool getWorkingDirectory(int argc, char* argv[], string& dir) {
         argc == 2 ? dir = string(argv[1]) :
                 dir = string(argv[0]).substr(0, string(argv[0]).find_last_of(
                         "\\/"));
         return isValidWorkDirectory(dir);
     }
 
-    bool getWaveFiles(const string &dir, vector<LameWrapper> &workFiles) {
-        DIR *workDir = opendir(dir.c_str());
+    bool getWaveFiles(const string& dir, vector<LameWrapper>& workFiles) {
+        DIR* workDir = opendir(dir.c_str());
         if (workDir == nullptr) {
             return false;
         }
 
-        dirent *dirIt = nullptr;
+        dirent* dirIt = nullptr;
         while ((dirIt = readdir(workDir)) != nullptr) {
             if (isValidFileType(dirIt->d_name, extWave)) {
                 try {
+                    if (getFileSize(string(dir + "/" + dirIt->d_name)) <=
+                        4096 * 10) {
+                        std::cout << dirIt->d_name
+                                  << " is too small for a WAV file "
+                                  << " and will be skipped."
+                                  << std::endl;
+                        continue;
+                    }
                     LameWrapper lw = LameWrapper(dir, dirIt->d_name);
                     wave::Wave* waveInfo = new wave::Wave(lw.getFullPath());
                     lw.setWaveInfo(waveInfo);
                     workFiles.push_back(lw);
-                } catch (std::exception&) {
+                } catch (std::exception& e) {
                     //FIXME it only throws if file cannot be opened
                     //so should not rely on throws for validation ...
                     std::cout << dirIt->d_name << " is not a valid WAV file!"
@@ -59,7 +69,7 @@ namespace cinemo {
         return workFiles.size() > 0;
     }
 
-    bool isValidFileType(const string &file, const char *ext) {
+    bool isValidFileType(const string& file, const char* ext) {
         bool isValid = false;
         string fileExt;
         //first, check extension
@@ -75,6 +85,13 @@ namespace cinemo {
         }
 
         return isValid;
+    }
+
+    int getFileSize(const string& file) {
+        std::ifstream is;
+        is.open(file, std::ios::binary);
+        is.seekg(0, std::ios::end);
+        return is.tellg();
     }
 
     string changeExt(const string& in, const string& ext) {

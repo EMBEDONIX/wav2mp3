@@ -5,10 +5,8 @@
 #include "LameWrapper.hpp"
 #include "utils.hpp"
 
-#include <lame/lame.h>
 #include <iostream>
 #include <regex>
-#include <fstream>
 
 using std::cout;
 using std::endl;
@@ -31,7 +29,7 @@ namespace cinemo {
     }
 
     void LameWrapper::printWaveInfo() {
-        //TODO change this to return string, not print on ostream directly
+        //TODO change this to return string, not printing on ostream directly
         cout << "Sample Rate:\t" << waveFile->get_samples_per_sec() << " Hz"
              << endl;
         cout << "Bit Rate:\t" << waveFile->get_avg_bytes_per_sec() << " bps"
@@ -47,80 +45,108 @@ namespace cinemo {
             return;
         }
 
-        isBusy = true;
+        //setup lame struct
+        lame_t l;
+        l = lame_init();
 
+        //finalize lame params
+        if (getLameFlags(l) < 0) {
+            cout << "Error in setting lame parameters!" << endl;
+            return;
+        }
+
+        //all set....go!
+        isBusy = true;
+        doEncoding(getFullPath(), changeExt(getFullPath(), "mp3"), l);
+        lame_close(l);
+        isDone = true;
+        isBusy = false;
+    }
+
+    int LameWrapper::getLameFlags(lame_t& l) {
+        //get information from wave file
         int32_t sample_rate = waveFile->get_samples_per_sec();
         int32_t byte_rate = waveFile->get_avg_bytes_per_sec();
         int16_t channels = waveFile->get_channels();
 
-        std::ofstream mp3(changeExt(getFullPath(), "mp3").c_str(),
-                          std::ios_base::binary | std::ios_base::out);
-
-        const int PCM_SIZE = 8192;
-        const int MP3_SIZE = 8192;
-        unsigned offset = 0;
-        std::vector<char> pcm_buffer(sizeof(short int) * PCM_SIZE * 2);
-        //FIXME following reservation causes sigsev using gcc 4.9
-        //pcm_buffer.reserve(sizeof(short int) * PCM_SIZE * 2);
-
-        unsigned char mp3_buffer[MP3_SIZE];
-
-        lame_t l = lame_init();
+        lame_set_quality(l, 0);
         lame_set_in_samplerate(l, sample_rate);
-        lame_set_brate(l, byte_rate);
+        lame_set_out_samplerate(l, sample_rate);
+        //lame_set_brate(l, 320);
+        lame_set_bWriteVbrTag(l, 1);
+        lame_set_VBR(l, vbr_mtrh);
 
         if (channels == 1) {
             lame_set_num_channels(l, 1);
             lame_set_mode(l, MONO);
-        } else {
+        } else { //FIXME currently treating anything else as stereo
             lame_set_num_channels(l, channels);
+            lame_set_mode(l, STEREO);
         }
 
-        lame_set_VBR(l, vbr_default);
-        lame_init_params(l);
+        //Init the id3 tag structure
+        id3tag_init(l);
+        id3tag_v2_only(l);
+        id3tag_set_year(l, "");
+        id3tag_set_genre(l, "");
+        id3tag_set_artist(l, "");
+        id3tag_set_album(l, "");
+        id3tag_set_title(l, "");
+        id3tag_set_track(l, "");
+        id3tag_set_comment(l, "Converted by WAV2MP3, www.embedonix.com");
+        //no need for album art ;)
+        //id3tag_set_albumart(l, nullptr, 0);
+        lame_set_write_id3tag_automatic(l, 0); //0 manual 1 auto
 
-        while (true) {
-            int k = (channels == 1) ? 1 : 2;
-            unsigned size = PCM_SIZE * k * sizeof(short int);
-            waveFile->get_samples(offset, size, pcm_buffer);
-            unsigned read = pcm_buffer.size();
-            offset += read;
+        return lame_init_params(l);
+    }
 
-            if (read > 0) {
-                unsigned read_shorts =
-                        read / 2;  // need number of 'short int' read
-                int write = 0;
+    bool LameWrapper::doEncoding(const string& pcm_in, const string& mp3_out,
+                                 const lame_t& lame) {
 
-                if (channels == 1) {
-                    write = lame_encode_buffer(l,
-                                               reinterpret_cast<short int*>( &pcm_buffer[0] ),
-                                               NULL, read_shorts, mp3_buffer,
-                                               MP3_SIZE);
+/*      some hints are taken from
+        http://stackoverflow.com/questions/16926725/audio-speed-changes-on-converting-wav-to-mp3*/
+
+        FILE* pcm = fopen(pcm_in.c_str(), "rb");
+        FILE* mp3 = fopen(mp3_out.c_str(), "wb");
+
+        size_t read = 0;
+        int write = 0;
+
+        const int PCM_SIZE = 8192;
+        const int MP3_SIZE = 8192;
+
+        short int pcm_buffer[PCM_SIZE * 2];
+        unsigned char mp3_buffer[MP3_SIZE];
+
+        int numChannels = lame_get_num_channels(lame);
+        cout << "read multiplier = " << numChannels;
+
+        do {
+            read = fread(pcm_buffer, numChannels * sizeof(short int), PCM_SIZE,
+                         pcm);
+            if (read == 0) {
+                write = lame_encode_flush(lame, mp3_buffer, MP3_SIZE);
+            } else {
+                write = lame_encode_buffer(lame, pcm_buffer, nullptr,
+                                           (const int) read, mp3_buffer,
+                                           MP3_SIZE);
+                //FIXME figure out writing of one channel or two channel correctly
+/*                if(numChannels == 1) {
+                    write = lame_encode_buffer(lame, pcm_buffer, nullptr,
+                                               reinterpret_cast<int>(read), mp3_buffer, MP3_SIZE);
                 } else {
-                    write = lame_encode_buffer_interleaved(l,
-                                                           reinterpret_cast<short int*>( &pcm_buffer[0] ),
-                                                           read_shorts,
-                                                           mp3_buffer,
+                    write = lame_encode_buffer_interleaved(lame, pcm_buffer,
+                                                           (int) read, mp3_buffer,
                                                            MP3_SIZE);
-                }
-
-                pcm_buffer.clear();
-
-                mp3.write(reinterpret_cast<char*>( mp3_buffer ), write);
+                }*/
             }
+            fwrite(mp3_buffer, write, 1, mp3);
+        } while (read != 0);
 
-            if (read < size) {
-                int write = lame_encode_flush(l, mp3_buffer, MP3_SIZE);
-
-                mp3.write(reinterpret_cast<char*>( mp3_buffer ), write);
-
-                break;
-            }
-        };
-
-        lame_close(l);
-
-        isDone = true;
-        isBusy = false;
+        lame_close(lame);
+        fclose(mp3);
+        fclose(pcm);
+        return true;
     }
 }

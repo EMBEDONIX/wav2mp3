@@ -41,5 +41,7 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 .idea/
-cmake-build-debug/
 
+#build folders (saeid)
+cmake-build-debug/
+cmake-build-release/

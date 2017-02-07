@@ -9,6 +9,8 @@
 //TODO forward declare
 #include "wave.h"
 
+#include "lame/lame.h"
+
 using std::string;
 using namespace wave;
 
@@ -23,6 +25,11 @@ namespace cinemo {
         Wave* waveFile;
         bool isBusy;
         bool isDone;
+
+        int getLameFlags(lame_t& l);
+
+        bool doEncoding(const string& in, const string& out,
+                        const lame_t& lame);
 
     public:
         LameWrapper(const string &dir, const string &file);

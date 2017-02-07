@@ -23,10 +23,12 @@ int main(int argc, char *argv[]) {
     if (getWorkingDirectory(argc, argv, workDir)) {
         cout << "Looking for wave files in " << workDir << endl;
         vector<LameWrapper> lw;
+
         if (!getWaveFiles(workDir, lw)) {
             cout << "Can not find any WAV file in " << workDir << endl;
             return 0;
         }
+
         for (auto work : lw) {
             cout << " starting conversion of " << work.getFileName() << endl;
             work.printWaveInfo();
