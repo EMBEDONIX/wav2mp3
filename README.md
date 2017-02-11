@@ -1,6 +1,6 @@
-<a hreg="http://embedonix.com"><img src="res/embedonix.jpg" width=64 height=64 align="right" /></a>
+<a href="http://embedonix.com"><img src="res/embedonix.jpg" width=64 height=64 align="right" /></a>
 #WAV2MP3 Encoder
-This is an expirimental project for a command line tool to convert <b>wave</b> files into <b>mp3</b> format using <a href="http://lame.sourceforge.net" target="_blank">LAME MP3 Encoder</a> library.
+This is an experimental project for a command line tool to convert <b>wave</b> files into <b>mp3</b> format using <a href="http://lame.sourceforge.net" target="_blank">LAME MP3 Encoder</a> library.
 <br />
 #What it has
 <ul>
