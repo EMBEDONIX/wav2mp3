@@ -129,7 +129,6 @@ namespace wh {
         }
 
         f.close();
-        wh->WarningFlags = (int8_t) 256;
         return wh;
     }
 
