@@ -12,5 +12,13 @@ This is an experimental project for a command line tool to convert <b>wave</b> f
 <li>Support for Microsoft Windows</li>
 <li>Threaded encoding using POSIX</li>
 </ul>
+#Compiling
+<ul>
+<li>Currently, only linux is supported.</li>
+<li>GCC 4.9 or higher</li>
+<li>libmp3lame should be installed</li>
+</ul>
 #Warning
 The code in this repository is still incomplete, please do not use it for any critical tasks until further notice!
+<br /><br />
+<p style="color: #FFCDFF">Feel free to ask questions!</p>
