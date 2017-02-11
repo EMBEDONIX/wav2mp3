@@ -36,11 +36,11 @@ namespace cinemo {
     }
 
     LameWrapper::~LameWrapper() {
-        //no need to delete waveFile, its being used by workfiles vector in main
+        //no need to delete wh, its being used by workfiles vector in main
     }
 
     void LameWrapper::printWaveInfo() {
-        if(wh != nullptr) {
+        if (wh != nullptr) {
             wh::printWaveHeader(getHeader());
         } else {
             cout << getFullPath() << " Appears to be an invalid or "
@@ -48,13 +48,13 @@ namespace cinemo {
         }
     }
 
-    int LameWrapper::getLameFlags(lame_t& l) {
+    int LameWrapper::getLameFlags(lame_t l, int quality) {
         //get information from wave file
         int32_t sample_rate = wh->SampleRate;
         int32_t byte_rate = wh->ByteRate;
         int16_t channels = wh->NumberOfChannels;
 
-        lame_set_quality(l, 0);
+        lame_set_quality(l, quality);
         lame_set_in_samplerate(l, sample_rate);
         lame_set_out_samplerate(l, sample_rate);
         //lame_set_brate(l, 320);
@@ -78,7 +78,7 @@ namespace cinemo {
         id3tag_set_album(l, "");
         id3tag_set_title(l, "");
         id3tag_set_track(l, "");
-        id3tag_set_comment(l, "Converted by WAV2MP3, www.embedonix.com");
+        id3tag_set_comment(l, "Converted with WAV2MP3 by www.EMBEDONIX.com");
         //no need for album art ;)
         //id3tag_set_albumart(l, nullptr, 0);
         lame_set_write_id3tag_automatic(l, 1); //0 manual 1 auto
@@ -86,24 +86,31 @@ namespace cinemo {
         return lame_init_params(l);
     }
 
-    void LameWrapper::convertToMp3() {
+    bool LameWrapper::convertToMp3(int quality) {
 
-        if(wh == nullptr) {
+        if (wh == nullptr) {
             cout << "This file does not appear to be a valid WAV file!" << endl;
+        }
+
+        //check if given quality argument is valid
+        if (quality < 0 || quality > 9) {
+            quality = 0; //set to default
         }
 
         //setup lame struct
         lame_t l;
         l = lame_init();
 
+
         //finalize lame params
-        if (getLameFlags(l) < 0) {
+        if (getLameFlags(l, quality) < 0) {
             cout << "Error in setting lame parameters!" << endl;
-            return;
+            return false;
         }
 
         //all set....go!
         isBusy = true;
+        //FIXME decide about what to do about JointStereo types
         //TODO this nesting of switches requires a through rework!
         switch (wh->FormatAudioType) {
             case wh::WaveAudioType::WAT_RAW_PCM:
@@ -118,33 +125,39 @@ namespace cinemo {
 
                             case 16:
                                 isDone = encodeMono_2_16(getFullPath(),
-                                                        changeExt(getFullPath(),
-                                                                  "mp3"), l);
+                                                         changeExt(
+                                                                 getFullPath(),
+                                                                 "mp3"), l);
                                 break; //mono 16bit end
                             default:
                                 cout << "Encoding of files with bit depth of "
-                                     << wh->BitsPerSample << " is not yet implemented!";
+                                     << wh->BitsPerSample
+                                     << " is not yet implemented!";
                                 break;
 
                         }
                         break;
 
                     case 2:
-                        switch(wh->BitsPerSample) {
+                        switch (wh->BitsPerSample) {
                             case 8:
                                 isDone = encodeStereo_2_8(getFullPath(),
-                                                      changeExt(getFullPath(),
-                                                                "mp3"), l);
+                                                          changeExt(
+                                                                  getFullPath(),
+                                                                  "mp3"), l);
                                 break;
 
                             case 16:
                                 isDone = encodeStereo_4_16(getFullPath(),
-                                            changeExt(getFullPath(), "mp3"), l);
+                                                           changeExt(
+                                                                   getFullPath(),
+                                                                   "mp3"), l);
                                 break;
 
                             default:
                                 cout << "Encoding of files with bit depth of "
-                                     << wh->BitsPerSample << " is not yet implemented!";
+                                     << wh->BitsPerSample
+                                     << " is not yet implemented!";
                                 break;
                         }
 
@@ -160,31 +173,35 @@ namespace cinemo {
                 break;
 
             case wh::WaveAudioType::WAT_MPEG_3: //already MP3 !!!!
-                isDone = encodeAlreadyMp3(getFullPath(), changeExt(getFullPath(), "mp3"), l);
+                isDone = encodeAlreadyMp3(getFullPath(),
+                                          changeExt(getFullPath(), "mp3"), l);
                 break;
 
             default: //all other cases
-                cout << "Conversion of files with format " << +wh->FormatAudioType
-                                                           << " is not yet supported."
-                                                           <<endl;
+                cout << "Conversion of files with format 0x" << std::hex
+                     << +wh->FormatAudioType
+                     << std::dec << " (" << wh->FormatAudioType << ")"
+                     << " is not yet supported."
+                     << endl;
                 break;
         }
 
-        if(!isDone) {
+        if (!isDone) {
             cout << getFullPath() << " Was not converted!" << endl;
         }
 
         lame_close(l);
         isBusy = false;
+        return isDone;
     }
 
 
-
     bool LameWrapper::encodeMono_1_8(const string& in, const string& out,
-                                 const lame_t& lame) {
+                                     const lame_t& lame) {
         std::ifstream wav(in, std::ios_base::in | std::ios_base::binary);
         std::ofstream mp3(out, std::ios_base::out | std::ios_base::trunc |
-                                   std::ios_base::binary);
+                               std::ios_base::binary);
+
         //just to make sure...
         if (!wav.is_open() || !mp3.is_open()) {
             return false;
@@ -193,23 +210,25 @@ namespace cinemo {
         std::streamsize read = 0, write = 0;
 
         int WAV_BUFF_SIZE = 8192, MP3_BUFF_SIZE = 8192;
-        char wav_buff[WAV_BUFF_SIZE];
+        unsigned char wav_buff[WAV_BUFF_SIZE];
         unsigned char mp3_buff[MP3_BUFF_SIZE];
         wav.ignore(wh->DataBegin); //skip to data begin
 
         do {
             //read from wave file
-            wav.read(&wav_buff[0], sizeof(wav_buff[0]) * WAV_BUFF_SIZE) ;
+            wav.read(reinterpret_cast<char*>(&wav_buff[0]),
+                     sizeof(wav_buff[0]) * WAV_BUFF_SIZE);
             read = wav.gcount();
 
             if (read == 0) { //reading from wav file has ended!
                 write = lame_encode_flush(lame,
-                                  reinterpret_cast<unsigned char*>(&mp3_buff),
-                                  MP3_BUFF_SIZE );
+                                          reinterpret_cast<unsigned char*>(&mp3_buff),
+                                          MP3_BUFF_SIZE);
             } else { //encoding
                 write = lame_encode_buffer(lame,
-               (const short*) reinterpret_cast<unsigned  char*>(&wav_buff[0]),
-                nullptr, (const int) read / 2, mp3_buff, MP3_BUFF_SIZE);
+                                           reinterpret_cast<const short*>(&wav_buff[0]),
+                                           nullptr, (const int) read / 4,
+                                           mp3_buff, MP3_BUFF_SIZE);
             }
             mp3.write(reinterpret_cast<char*>(&mp3_buff), write);
         } while (read != 0);
@@ -221,10 +240,10 @@ namespace cinemo {
     }
 
     bool LameWrapper::encodeMono_2_16(const string& in, const string& out,
-                         const lame_t& lame) {
+                                      const lame_t& lame) {
         std::ifstream wav(in, std::ios_base::in | std::ios_base::binary);
         std::ofstream mp3(out, std::ios_base::out | std::ios_base::trunc |
-                                   std::ios_base::binary);
+                               std::ios_base::binary);
         //just to make sure...
         if (!wav.is_open() || !mp3.is_open()) {
             return false;
@@ -240,13 +259,13 @@ namespace cinemo {
         do {
             //read from wave file
             wav.read(reinterpret_cast<char*>(&wav_buff[0]),
-                     sizeof(wav_buff[0]) * WAV_BUFF_SIZE) ;
+                     sizeof(wav_buff[0]) * WAV_BUFF_SIZE);
             read = wav.gcount();
 
             if (read == 0) { //reading from wav file has ended!
                 write = lame_encode_flush(lame,
-                                    reinterpret_cast<unsigned char*>(&mp3_buff),
-                                          MP3_BUFF_SIZE );
+                                          reinterpret_cast<unsigned char*>(&mp3_buff),
+                                          MP3_BUFF_SIZE);
             } else { //encoding
                 write = lame_encode_buffer(lame, &wav_buff[0], nullptr,
                                            (const int) (read / 2), mp3_buff,
@@ -262,8 +281,9 @@ namespace cinemo {
     }
 
 
-    bool LameWrapper::encodeStereo_2_8(const string& wav_in, const string& mp3_out,
-                                 const lame_t& lame) {
+    bool
+    LameWrapper::encodeStereo_2_8(const string& wav_in, const string& mp3_out,
+                                  const lame_t& lame) {
 
         std::ifstream wav(wav_in, std::ios_base::in | std::ios_base::binary);
         std::ofstream mp3(mp3_out, std::ios_base::out | std::ios_base::trunc |
@@ -292,14 +312,14 @@ namespace cinemo {
 
             if (read == 0) { //reading from wav file has ended!
                 write = lame_encode_flush(lame,
-                                  reinterpret_cast<unsigned char*>(&mp3_buff),
-                                  MP3_BUFF_SIZE );
+                                          reinterpret_cast<unsigned char*>(&mp3_buff),
+                                          MP3_BUFF_SIZE);
             } else { //encoding
                 write = lame_encode_buffer(lame,
-                                   reinterpret_cast<short int*>(&wav_buff_l[0]),
-                                   reinterpret_cast<short int*>(&wav_buff_r[0]),
-                                   (const int) read / 2, mp3_buff,
-                                   MP3_BUFF_SIZE);
+                                           reinterpret_cast<short int*>(&wav_buff_l[0]),
+                                           reinterpret_cast<short int*>(&wav_buff_r[0]),
+                                           (const int) read / 2, mp3_buff,
+                                           MP3_BUFF_SIZE);
 
             }
 
@@ -314,14 +334,16 @@ namespace cinemo {
     }
 
     bool LameWrapper::encodeStereo_4_16(const string& in, const string& out,
-                                       const lame_t& lame) {
+                                        const lame_t& lame) {
 
         std::ifstream wav(in, std::ios_base::in | std::ios_base::binary);
         std::ofstream mp3(out, std::ios_base::out | std::ios_base::trunc |
-                                   std::ios_base::binary);
+                               std::ios_base::binary);
 
         //just to make sure...
         if (!wav.is_open() || !mp3.is_open()) {
+            cout << "Error in reading/writing source and destination files."
+                 << endl;
             return false;
         }
 
@@ -353,7 +375,6 @@ namespace cinemo {
                                            MP3_BUFF_SIZE);
 
             }
-            //write encoded into mp3 file
             mp3.write(reinterpret_cast<char*>(&mp3_buff), write);
         } while (read != 0);
 
@@ -361,11 +382,10 @@ namespace cinemo {
         mp3.close();
 
         return true;
-
     }
 
     bool LameWrapper::encodeAlreadyMp3(const string& in, const string& out,
-                          const lame_t& lame) {
+                                       const lame_t& lame) {
         cout << "File is already encoded as MP3, just change the extension!!"
              << endl;
         return false;

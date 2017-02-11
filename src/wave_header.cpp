@@ -36,6 +36,7 @@ namespace wh {
     static const string WaveFormatString = "fmt "; //don't date touch that space!
     static const string WaveFactString = "fact";
     static const string WaveDataString = "data";
+    static const string WaveListString = "LIST";
     static const int WaveExtNormalGuidLength = 16;
     static const int WaveBufferSize = 256;
     static const int WaveMinLength = 32;
@@ -89,7 +90,7 @@ namespace wh {
 
         //next might be "fmt " but there is no guarantee!
         long int posBeforeHeaderSearch = f.tellg();
-        data_pos fmt, fact, data;
+        data_pos fmt, fact, data, List;
         f.read(&buff[0], WaveBufferSize);
         size_t read = (size_t) (f.tellg() - posBeforeHeaderSearch);
         //for fmt and fact there is no guranatee which comes first
@@ -98,15 +99,24 @@ namespace wh {
         fact = searchForHeader(buff, read, WaveFactString);
         //TODO search for data within fmt or fact search to speed up!
         data = searchForHeader(buff, read, WaveDataString);
+        List = searchForHeader(buff, read, WaveListString);
 
         //fmt and data SHOULD be available, otherwise file is corrupted
         //fact is optional
         if (!fmt.first && !data.first) { //file is bad!
             f.close();
+            //FIXME hmmm use error flags or just return null? that is the question!
+            wh->ErrorFlags.set(static_cast<int>(ERROR_NoFmt), 1);
+            wh->ErrorFlags.set(static_cast<int>(ERROR_NoData), 1);
             return nullptr;
         }
 
         posBeforeHeaderSearch += 4; //since all headers are 4 byte
+
+        if (fact.first || List.first) {
+            wh->WarningFlags.set(
+                    static_cast<int>(WARNING_NoneStandardExtension), 1);
+        }
 
         if (fact.first) {
             fact.second += posBeforeHeaderSearch;
@@ -120,12 +130,17 @@ namespace wh {
         }
 
         if(fact.first) {
-            //TODO parse fact
+            getFactFromFileHandle(wh, f, fact);
         }
 
         if (data.first) {
             data.second += posBeforeHeaderSearch;
             getDataFromFileHandle(wh, f, data);
+        }
+
+        if (List.first) {
+            wh->hasList = true;
+            getListInfoFromFileHandle(wh, f, List);
         }
 
         f.close();
@@ -160,7 +175,8 @@ namespace wh {
             //double check, if file is standard, now it should have reach to "data"
             file.read(&buff[0], 4);
             if(!wh->HasFact && string(&buff[0], 4) != WaveDataString) { //update error flag
-                wh->ErrorFlags.set(static_cast<int>(ERROR_NoFact_DataNotAfterFmt), 1);
+                wh->WarningFlags.set(
+                        static_cast<int>(WARNING_NoneStandardExtension), 1);
             }
             return;
         } else if(leftToRead == 2) { //its fmt with 18 bytes
@@ -168,7 +184,8 @@ namespace wh {
                       sizeof(wh->ExtensionSize));
             file.read(&buff[0], 4);
             if(!wh->HasFact && string(&buff[0], 4) != WaveDataString) { //update error flag
-                wh->ErrorFlags.set(static_cast<int>(ERROR_NoFact_DataNotAfterFmt), 1);
+                wh->WarningFlags.set(
+                        static_cast<int>(WARNING_NoneStandardExtension), 1);
             }
             return;
         }
@@ -180,7 +197,8 @@ namespace wh {
 
         //standard extension sizes are 0 or 22 (0 is set by default in the struct)
         if(wh->ExtensionSize != 0 && wh->ExtensionSize != 22) {
-            wh->WarningFlags.set(static_cast<int>(WARNING_NotStandardExtension), 1);
+            wh->WarningFlags.set(
+                    static_cast<int>(WARNING_NoneStandardExtension), 1);
         }
 
         file.read(reinterpret_cast<char*>(&wh->ValidBitsPerSample),
@@ -194,7 +212,8 @@ namespace wh {
         // or "data" (other possibilities might exist!!!!)
         file.read(&buff[0], 4);
         if(!wh->HasFact && string(&buff[0], 4) != WaveDataString) { //update error flag
-            wh->ErrorFlags.set(static_cast<int>(ERROR_NoFact_DataNotAfterFmt), 1);
+            wh->WarningFlags.set(
+                    static_cast<int>(WARNING_NoneStandardExtension), 1);
         }
     }
 
@@ -214,6 +233,19 @@ namespace wh {
         //TODO check if file ends at where it should end! (mind the pad byte if exists)
     }
 
+    void getListInfoFromFileHandle(WaveHeader* wh, std::ifstream& file,
+                                   data_pos dp) {
+        //FIXME figure out how to read LIST header chunks...
+        //no source for it yet :(
+
+//        file.seekg(dp.second, std::ios::beg);
+//        char buff[WaveBufferSize];
+//        //get format size
+//        file.read(&buff[0], 4);
+//        wh->FactSize = convert4CharTo16_BigEndian(&buff[0]);
+
+    }
+
     uint32_t convert4CharTo16_BigEndian(char* const buff) {
         return (uint32_t) (buff[0] | (buff[1] << 8) | (buff[2] << 16) |
                            (buff[3] << 24));
@@ -223,22 +255,22 @@ namespace wh {
 
         cout << "-------------------------------------" << endl;
         cout << "Wave Header Information" << endl;
-        cout << "File: \t\t\t" << wh.File << endl;
-        cout << "Total size: \t\t" << wh.FileSize << " Bytes" << endl;
-        cout << "Riff Size: \t\t" << wh.RiffSize << " Bytes" << endl;
-        cout << "Wave ID: \t\t" << wh.WaveId << endl;
-        cout << "Format Size: \t\t" << wh.FormatSize << " Bytes" << endl;
-        cout << "AudioType: \t\t" << wh.FormatAudioType << endl;
-        cout << "Channels: \t\t" << wh.NumberOfChannels << endl;
-        cout << "Sample Rate: \t\t" << wh.SampleRate << " Hz" << endl;
-        cout << "Byte Rate: \t\t" << wh.ByteRate << " Bps" << endl;
-        cout << "Block Align: \t\t" << wh.BlockAlign << endl;
+        cout << "File: \t" << wh.File << endl;
+        cout << "Total size: " << wh.FileSize << " Bytes" << endl;
+        cout << "Riff Size: " << wh.RiffSize << " Bytes" << endl;
+        cout << "Wave ID: " << wh.WaveId << endl;
+        cout << "Format Size: " << wh.FormatSize << " Bytes" << endl;
+        cout << "AudioType: " << wh.FormatAudioType << endl;
+        cout << "Channels: " << wh.NumberOfChannels << endl;
+        cout << "Sample Rate: " << wh.SampleRate << " Hz" << endl;
+        cout << "Byte Rate: " << wh.ByteRate << " Bps" << endl;
+        cout << "Block Align: " << wh.BlockAlign << endl;
         cout << "Bits per Sample: \t" << wh.BitsPerSample << endl;
         cout << "Extension Size: \t" << wh.ExtensionSize << endl;
         if(wh.isExtendedFormat()) {
-            cout << "\tExt. Valid Bits Per Sample: \t\t" << wh.ValidBitsPerSample
-                    << endl;
-            cout << "\tExt. Channel Mask: \t\t" << wh.ChannelMask << endl;
+            cout << "\tExt. Valid Bits Per Sample: " << wh.ValidBitsPerSample
+                 << endl;
+            cout << "\tExt. Channel Mask: " << wh.ChannelMask << endl;
             cout << "\tGUID: ";
             auto flags = cout.flags(); //keep current console flags
             for(int i = 0; i < wh.ExtensionSize - 6; i++) {
@@ -248,20 +280,24 @@ namespace wh {
             cout.flags(flags);
         }
         if(wh.HasFact) {
-            cout << "FACT Details: \t\t" << endl;
-            cout << "\tSize: \t\t" << wh.FactSize << endl;
-            cout << "\tSample Length: \t\t" << wh.FactSampleLength << " Bytes" << endl;
+            cout << "FACT Details: " << endl;
+            cout << "\tSize: " << wh.FactSize << endl;
+            cout << "\tSample Length: " << wh.FactSampleLength << " Bytes"
+                 << endl;
             if(wh.FactSize > 4) { //standard is 4...but there maybe more
                 cout << "\tNote: there is information which have been skipped!" << endl;
             }
         }
-        cout << "Data Size: \t\t" << wh.DataSize << " Bytes" << endl;
-        cout << "Data Begins: \t\t" << wh.DataBegin << endl;
+        cout << "Data Size: " << wh.DataSize << " Bytes" << endl;
+        cout << "Data Begins: " << wh.DataBegin << endl;
+        if (wh.hasList) {
+            cout << "LIST Size: " << wh.ListSize << endl;
+        }
         if(wh.WarningFlags.any()) {
-            cout << "Warning Flags: \t\t" << wh.WarningFlags << endl;
+            cout << "Warning Flags: " << wh.WarningFlags << endl;
         }
         if(wh.ErrorFlags.any()) {
-            cout << "Error Flags: \t\t" << wh.ErrorFlags << endl;
+            cout << "Error Flags: " << wh.ErrorFlags << endl;
         }
         cout << "-------------------------------------" << endl;
     }

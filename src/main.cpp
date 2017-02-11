@@ -59,16 +59,21 @@ int main(int argc, char *argv[]) {
 
     //begin conversion
     for (auto work : lw) {
-        if(!work.hasValidWaveHeader()) {
+        if (!work.isValidWaveFile()) {
             cout << work.getFileName() << " Appears to be invalid or corrupt" << endl;
             continue;
         }
         cout << "\nStarting conversion of " << work.getFileName() << endl;
         work.printWaveInfo();
         cout << "Converting..." << endl;
-        work.convertToMp3();
-        cout << "Done." << endl;
+        if (work.convertToMp3()) {
+            cout << "Done." << endl;
+        } else {
+            cout << "canceled." << endl;
+        }
     }
+
+    lw.clear();
 
     return 0;
 }

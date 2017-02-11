@@ -30,8 +30,19 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 //  http://soundfile.sapp.org/doc/WaveFormat/
 //  http://jhove.sourceforge.net/wave-hul.html
 //  http://www.topherlee.com/software/pcm-tut-wavformat.html
+//  http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/RIFF.html#Info
 //  http://www.onicos.com/staff/iz/formats/wav.html
 //  http://wavefilegem.com/how_wave_files_work.html
+//
+//TOOLS USED:
+//  "jhove" a command line tool to validate RIFF headers
+//      e.g. "$jhove file.wav"
+//  "xxd" to visualise RIFF header in binary and ASCII
+//      e.g. "$xxd -b -c 4 -l 100 file.wav"
+//  "ffmpeg" to produce test files (ffmpeg appends lots of extra headers!!!)
+//      e.g. "$ffmpeg -i inpu.wav -ar 8000 -ac 1 -acodec pcm_u8 output.wav"
+//
+//  Refer to man pages of the above commands for more info
 
 #ifndef CINEMO_WAVE_HEADER_HPP
 #define CINEMO_WAVE_HEADER_HPP
@@ -46,7 +57,7 @@ typedef std::pair<bool, int> data_pos;
 namespace cinemo {
 namespace wh {
     /**
-     * @brief Flags for any warning during parsing of the wave file's header
+     * @brief Flags for any warnings during parsing of the wave file's RIFF header
      */
     enum WaveParseWarnings {
         /** No warnings during header parsing */
@@ -55,19 +66,20 @@ namespace wh {
         WARNING_SizeMismatch = 1,
         /** If Wave ID is not equal to "WAVE" */
         WARNING_InvalidWaveId = 2,
-        /** Happens if extension size is not 22 */
-        WARNING_NotStandardExtension = 3
+        /** Happens if extension size is not 22 or data is not immediately followed by fmt */
+                WARNING_NoneStandardExtension = 3
     };
 
+    /**
+     * @brief Flags for any errors during parsing of the wave file's RIFF header
+     */
     enum WaveErrorFlags {
         /** No error */
                 ERROR_None = 0,
         /** Data chunk does not exist */
                 ERROR_NoData = 1,
         /** fmt chunk does not exist */
-                ERROR_NoFmt = 2,
-        /** Data chunk is not */
-                ERROR_NoFact_DataNotAfterFmt = 3
+                ERROR_NoFmt = 2
     };
 
     /**
@@ -98,8 +110,7 @@ namespace wh {
         WAT_EXPIRIMENTAL = 65535
     };
 
-
-
+    //FIXME convert to a nicely aligned C struct (e.g. for embedded systems)
     /**
      * @brief Minimalistic representation of a wave file header.
      */
@@ -147,6 +158,12 @@ namespace wh {
         uint32_t DataBegin = 0;
         /** Size of bytes that contain actual audio content */
         uint32_t DataSize = 0;
+
+        //Extra, possibly harmless headers
+        bool hasList = false;
+        uint32_t ListSize = 0;
+
+
         //FUNCTIONS
         /**
          * @brief Check if the file is in extended format
@@ -178,6 +195,9 @@ namespace wh {
 
     void getDataFromFileHandle(WaveHeader* wh, std::ifstream& file,
                                data_pos dp);
+
+    void getListInfoFromFileHandle(WaveHeader* wh, std::ifstream& file,
+                                   data_pos dp);
 
     void printWaveHeader(const WaveHeader& wh);
 

@@ -46,7 +46,7 @@ namespace cinemo {
         bool isBusy;
         bool isDone;
 
-        int getLameFlags(lame_t& l);
+        int getLameFlags(lame_t l, int quality);
         bool encodeAlreadyMp3(const string& in, const string& out,
                               const lame_t& lame);
 
@@ -72,11 +72,27 @@ namespace cinemo {
 
         ~LameWrapper();
 
-        void convertToMp3();
+        /**
+         * @brief Performs the encoding of WAV to MP3.
+         * @param quality The quality ratio. 0 = highest (default), 9 = lowest.
+         * @return true on success, false on failure
+         */
+        bool convertToMp3(int quality = 0);
 
+        /**
+         * @brief Returns the wave header object of the associated wave file to this instance.
+         * @return wh WaveHeader object parsed from wav file
+         */
         wh::WaveHeader getHeader() const {return *wh;}
 
-        bool hasValidWaveHeader() const {return wh != nullptr;}
+        /**
+         * @brief Check if the wave header was parsed and is valid.
+         * Note:
+         *  This function should be called to check validity before attempting
+         *  to encode a WAV file into MP3.
+         * @return true if valid, false if invalid
+         */
+        bool isValidWaveFile() const { return wh != nullptr; }
 
         string getDir() const { return dir; }
 
