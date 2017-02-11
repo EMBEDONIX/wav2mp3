@@ -92,7 +92,7 @@ namespace cinemo {
          *  to encode a WAV file into MP3.
          * @return true if valid, false if invalid
          */
-        bool isValidWaveFile() const { return wh != nullptr; }
+        bool isValidWaveFile() const { return !wh->ErrorFlags.any(); }
 
         string getDir() const { return dir; }
 

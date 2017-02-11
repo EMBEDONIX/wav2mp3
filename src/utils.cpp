@@ -43,11 +43,9 @@ namespace cinemo {
         return stat(dir.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
     }
 
-    bool getWorkingDirectory(int argc, char* argv[], string& dir) {
-        argc == 2 ? dir = string(argv[1]) :
-                dir = string(argv[0]).substr(0, string(argv[0]).find_last_of(
-                        "\\/"));
-        return isValidWorkDirectory(dir);
+    bool getWorkingDirectoryFromExec(string& exec) {
+        exec = exec.substr(0, string(exec).find_last_of("\\/"));
+        return isValidWorkDirectory(exec);
     }
 
     bool getWaveFiles(const string& dir, vector<LameWrapper>& workFiles) {

@@ -39,21 +39,29 @@ namespace wh {
     static const string WaveListString = "LIST";
     static const int WaveExtNormalGuidLength = 16;
     static const int WaveBufferSize = 256;
-    static const int WaveMinLength = 32;
+    static const int WaveMinLength = 44; //smallest possible wav file, with no audio!
 
     WaveHeader* parseWaveHeader(const string& file) {
 
         std::ifstream f(file, std::ios::in | std::ios::binary |
                               std::ios::ate);
+        //generate wave header struct
+        WaveHeader* const wh = new WaveHeader;
+
         if (f == nullptr && !f.good()) {
-            return nullptr;
+            wh->ErrorFlags.set(static_cast<int>(ERROR_FileIo), 1);
+            return wh;
         }
 
         //Check for file size requirements
         int64_t fSize = f.tellg();
+        wh->File = file;
+        wh->FileSize = (uint32_t) fSize;
+
         if (fSize < WaveMinLength) {
             f.close();
-            return nullptr;
+            wh->ErrorFlags.set(static_cast<int>(ERROR_FileTooSmall), 1);
+            return wh; //because there is no point in reading rest of the file
         }
 
         //reset file handle (rewind)
@@ -66,31 +74,28 @@ namespace wh {
         f.read(&buff[0], 4); //get first 4 bytes
         if (string(&buff[0], 4) != WaveRIFFString) { //not valid
             f.close();
-            return nullptr;
+            wh->ErrorFlags.set(static_cast<int>(ERROR_NoRiffChunk), 1);
+            return wh; //because there is no point in reading rest of the file
         }
-
-        //generate wave header struct
-        WaveHeader* const wh = new WaveHeader;
-        wh->File = file;
-        wh->FileSize = (uint32_t) fSize;
 
         //RIFF Size (which should be (total file size - 8)
         //otherwise file might be corrupt
         f.read(reinterpret_cast<char*>(&wh->RiffSize), 4);
         if (wh->FileSize - wh->RiffSize != 8) {
-            wh->WarningFlags.set(WARNING_SizeMismatch, 1);
+            wh->WarningFlags.set(WARNING_SizeMismatch, 1); //just a warning
         }
 
         //extract "WAVE"
         f.read(&buff[0], 4);
         wh->WaveId = string(&buff[0], 4);
         if (wh->WaveId != WaveWaveIdString) {
-            wh->WarningFlags.set(static_cast<int>(WARNING_InvalidWaveId), 1);
+            wh->WarningFlags.set(static_cast<int>(ERROR_NoWaveChunk), 1);
+            return wh; //because there is no point in reading rest of the file
         }
 
         //next might be "fmt " but there is no guarantee!
         long int posBeforeHeaderSearch = f.tellg();
-        data_pos fmt, fact, data, List;
+        header_pos fmt, fact, data, List;
         f.read(&buff[0], WaveBufferSize);
         size_t read = (size_t) (f.tellg() - posBeforeHeaderSearch);
         //for fmt and fact there is no guranatee which comes first
@@ -103,12 +108,17 @@ namespace wh {
 
         //fmt and data SHOULD be available, otherwise file is corrupted
         //fact is optional
-        if (!fmt.first && !data.first) { //file is bad!
+        if (!fmt.first) {
+            wh->ErrorFlags.set(static_cast<int>(ERROR_NoFmtChunk), 1);
+        }
+
+        if (!data.first) {
+            wh->ErrorFlags.set(static_cast<int>(ERROR_NoDataChunk), 1);
+        }
+
+        if (wh->ErrorFlags.any()) {
             f.close();
-            //FIXME hmmm use error flags or just return null? that is the question!
-            wh->ErrorFlags.set(static_cast<int>(ERROR_NoFmt), 1);
-            wh->ErrorFlags.set(static_cast<int>(ERROR_NoData), 1);
-            return nullptr;
+            return wh; //to much errors! no point in reading rest of the file
         }
 
         posBeforeHeaderSearch += 4; //since all headers are 4 byte
@@ -148,7 +158,7 @@ namespace wh {
     }
 
     void getFmtFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                              data_pos dp) {
+                              header_pos dp) {
         file.seekg(dp.second, std::ios::beg);
         char buff[WaveBufferSize];
         //get format size
@@ -218,13 +228,13 @@ namespace wh {
     }
 
     void getFactFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                               data_pos dp) {
+                               header_pos dp) {
         file.seekg(dp.second, std::ios::beg);
         file.read(reinterpret_cast<char*>(&wh->FactSize), sizeof(wh->FactSize));
     }
 
     void getDataFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                               data_pos dp) {
+                               header_pos dp) {
         file.seekg(dp.second, std::ios::beg);
         file.read(reinterpret_cast<char*>(&wh->DataSize), sizeof(wh->DataSize));
         wh->DataBegin = (uint32_t) file.tellg();
@@ -234,7 +244,7 @@ namespace wh {
     }
 
     void getListInfoFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                                   data_pos dp) {
+                                   header_pos dp) {
         //FIXME figure out how to read LIST header chunks...
         //no source for it yet :(
 
@@ -302,8 +312,46 @@ namespace wh {
         cout << "-------------------------------------" << endl;
     }
 
-    data_pos searchForHeader(char* buff, size_t size, const string& s) {
-        data_pos dp(false, -1);
+    void printFlags() {
+        cout << "-------------------------------------" << endl;
+        cout << "Error flags are 8 bit (XXXXXXXX). If there is any error, "
+                "program can not encode the file. A set bit on each position has "
+                "the following meanings (BIT_0 = LSB):\n" << endl;
+        cout << "\tBIT_0 I/O error on opening/reading WAV file." << endl;
+        cout << "\tBIT_1 WAV File is too small, it should be at least "
+             << WaveMinLength << " Bytes (which would not have any audio data!)"
+             << endl;
+        cout << "\tBIT_2 File does not begin with ASCII characters \"RIFF\"."
+             << endl;
+        cout << "\tBIT_3 File does not contain ASCII characters \"WAVE\"."
+             << endl;
+        cout
+                << "\tBIT_4 File does not contain ASCII characters \"fmt \" for format specifications."
+                << endl;
+        cout
+                << "\tBIT_5 File does not contain ASCII characters \"data\" for audio."
+                << endl;
+        cout << "\tBIT_6 [unused in current version]" << endl;
+        cout << "\tBIT_7 [unused in current version]" << endl;
+        cout << endl;
+        cout << "Warning flags (might cause instability or corruption if any "
+                "is set):\n" << endl;
+        cout
+                << "\tBIT_0 Size mismatch between what is declared in the WAV header"
+                        " and the actual file's size." << endl;
+        cout << "\tBIT_1 WAV File is not standard PCM and its encoding "
+                "is not guaranteed to work (yet)." << endl;
+        cout << "\tBIT_2 [unused in current version]" << endl;
+        cout << "\tBIT_3 [unused in current version]" << endl;
+        cout << "\tBIT_4 [unused in current version]" << endl;
+        cout << "\tBIT_5 [unused in current version]" << endl;
+        cout << "\tBIT_6 [unused in current version]" << endl;
+        cout << "\tBIT_7 [unused in current version]" << endl;
+        cout << "-------------------------------------" << endl;
+    }
+
+    header_pos searchForHeader(char* buff, size_t size, const string& s) {
+        header_pos dp(false, -1);
         string b(buff, size);
         int pos = (int) b.find(s);
 

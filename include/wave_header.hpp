@@ -52,7 +52,13 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 
 using std::string;
 
-typedef std::pair<bool, int> data_pos;
+/**
+ * @brief Indicates exsistance and position of a header chunk.
+ *  first:  boolean, true if header exists
+ *  second: position of the last character of header + 1, relative to beggining
+ *  of the file.
+ */
+typedef std::pair<bool, int> header_pos;
 
 namespace cinemo {
 namespace wh {
@@ -61,25 +67,27 @@ namespace wh {
      */
     enum WaveParseWarnings {
         /** No warnings during header parsing */
-        WARNING_None = 0,
-        /** File size mismatch between actual file size and RIFF reported size */
-        WARNING_SizeMismatch = 1,
-        /** If Wave ID is not equal to "WAVE" */
-        WARNING_InvalidWaveId = 2,
+                WARNING_SizeMismatch = 0,
         /** Happens if extension size is not 22 or data is not immediately followed by fmt */
-                WARNING_NoneStandardExtension = 3
+                WARNING_NoneStandardExtension = 1
     };
 
     /**
      * @brief Flags for any errors during parsing of the wave file's RIFF header
      */
     enum WaveErrorFlags {
-        /** No error */
-                ERROR_None = 0,
-        /** Data chunk does not exist */
-                ERROR_NoData = 1,
-        /** fmt chunk does not exist */
-                ERROR_NoFmt = 2
+        /** Error if can not open and seek through the file */
+                ERROR_FileIo = 0,
+        /** Wave file should be at least 32 byte */
+                ERROR_FileTooSmall = 1,
+        /** RIFF chunk header does not exist */
+                ERROR_NoRiffChunk = 2,
+        /** WAVE chunk header does not exist */
+                ERROR_NoWaveChunk = 3,
+        /** fmt chunk header does not exist */
+                ERROR_NoFmtChunk = 4,
+        /** Data chunk header does not exist */
+                ERROR_NoDataChunk = 5
     };
 
     /**
@@ -124,6 +132,7 @@ namespace wh {
         /** Possible problems and warnings during parsing the wave file */
         std::bitset<8> WarningFlags = 0;
         /** Flags for errors during parsing if it is not 0, file is invalid */
+//FIXME ErrorFlags should be const/readonly for users of the struct
         std::bitset<8> ErrorFlags = 0;
         /** Total size of the file in bytes (including header and data) */
         uint32_t FileSize = 0;
@@ -188,23 +197,24 @@ namespace wh {
     WaveHeader* parseWaveHeader(const string& file);
 
     void getFmtFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                              data_pos dp);
+                              header_pos dp);
 
     void getFactFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                               data_pos dp);
+                               header_pos dp);
 
     void getDataFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                               data_pos dp);
+                               header_pos dp);
 
     void getListInfoFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                                   data_pos dp);
+                                   header_pos dp);
 
     void printWaveHeader(const WaveHeader& wh);
 
     uint32_t convert4CharTo16_BigEndian(char* const buff);
 
-    data_pos searchForHeader(char* buff, size_t size, const string& s);
+    header_pos searchForHeader(char* buff, size_t size, const string& s);
 
+    void printFlags();
 
 }
 }

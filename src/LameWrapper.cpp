@@ -88,7 +88,7 @@ namespace cinemo {
 
     bool LameWrapper::convertToMp3(int quality) {
 
-        if (wh == nullptr) {
+        if (wh->ErrorFlags.any()) {
             cout << "This file does not appear to be a valid WAV file!" << endl;
         }
 

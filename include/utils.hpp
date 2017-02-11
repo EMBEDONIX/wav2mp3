@@ -32,13 +32,11 @@ using std::vector;
 namespace cinemo {
 
     /**
-     * @brief Gets the directory from program arguments.
-     * @param argc Number of provided arguments.
-     * @param argv Value of arguments.
-     * @param dir  The string reference to be populated by path.
+     * @brief Evaluates working directory for finding wave files.
+     * @param exec The argv[0] of the program (executable file)
      * @return true on success, false on failure.
      */
-    bool getWorkingDirectory(int argc, char *argv[], string &dir);
+    bool getWorkingDirectoryFromExec(string& exec);
 
     /**
      * @brief Check to see if a given directory exists.
