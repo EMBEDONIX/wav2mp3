@@ -1,3 +1,20 @@
+/*
+This file is part of EMBEDONIX/WAV2MP3.
+
+EMBEDONIX/WAV2MP3 is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License.
+
+EMBEDONIX/WAV2MP3 is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
 //
 // Created by saeid on 04.02.17.
 //
@@ -42,27 +59,8 @@ namespace cinemo {
         dirent* dirIt = nullptr;
         while ((dirIt = readdir(workDir)) != nullptr) {
             if (isValidFileType(dirIt->d_name, extWave)) {
-                try {
-                    if (getFileSize(string(dir + "/" + dirIt->d_name)) <=
-                        4096 * 10) {
-                        std::cout << dirIt->d_name
-                                  << " is too small for a WAV file "
-                                  << " and will be skipped."
-                                  << std::endl;
-                        continue;
-                    }
                     LameWrapper lw = LameWrapper(dir, dirIt->d_name);
-                    wave::Wave* waveInfo = new wave::Wave(lw.getFullPath());
-                    lw.setWaveInfo(waveInfo);
                     workFiles.push_back(lw);
-                } catch (std::exception& e) {
-                    //FIXME it only throws if file cannot be opened
-                    //so should not rely on throws for validation ...
-                    std::cout << dirIt->d_name << " is not a valid WAV file!"
-                              << std::endl;
-                    continue;
-                }
-
             }
         }
 
@@ -87,10 +85,10 @@ namespace cinemo {
         return isValid;
     }
 
-    int getFileSize(const string& file) {
+    long getFileSize(const string& file) {
         std::ifstream is;
-        is.open(file, std::ios::binary);
-        is.seekg(0, std::ios::end);
+        is.open(file, std::ios::in | std::ios::binary
+                      | std::ios::ate);
         return is.tellg();
     }
 

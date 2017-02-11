@@ -8,6 +8,7 @@ if (WIN32)
     add_definitions(-DWIN32)
 else () #asume linux
     add_definitions(-DLINUX)
+    add_definitions(-DDEBUG)
 endif ()
 
 #headers and sources
@@ -16,7 +17,8 @@ set(SOURCE_FILES
         src/main.cpp
         src/utils.cpp
         src/LameWrapper.cpp
-        src/wave.cpp)
+        src/wave_header.cpp
+        )
 
 add_executable(wav2mp3 ${SOURCE_FILES})
 

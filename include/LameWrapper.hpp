@@ -1,18 +1,39 @@
+/*
+This file is part of EMBEDONIX/WAV2MP3.
+
+EMBEDONIX/WAV2MP3 is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License.
+
+EMBEDONIX/WAV2MP3 is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 //
 // Created by saeid on 04.02.17.
+//
+//NOTES:
+//  This header and implementation are minimalistic and in no way are complete and
+//  are made only as a solution to a job application task at Cinemo GmbH.
+//
+//  Use of this code for production/investment is discouraged. Use better open-source
+//  solutions which are out there (e.g. libav).
 //
 
 #ifndef CINEMO_LAMEWRAPPER_HPP
 #define CINEMO_LAMEWRAPPER_HPP
 
 #include <string>
-//TODO forward declare
-#include "wave.h"
 
+#include "wave_header.hpp"
 #include "lame/lame.h"
 
 using std::string;
-using namespace wave;
 
 namespace cinemo {
 
@@ -21,22 +42,41 @@ namespace cinemo {
         string dir;
         string file;
         string path;
-        //TODO use std unique ptr
-        Wave* waveFile;
+        const wh::WaveHeader* const wh;
         bool isBusy;
         bool isDone;
 
         int getLameFlags(lame_t& l);
+        bool encodeAlreadyMp3(const string& in, const string& out,
+                              const lame_t& lame);
 
-        bool doEncoding(const string& in, const string& out,
+        /************** ENCODE FUNCTIONS BEG *************/
+        // the following private functions are named by following convention
+        // encodeChannels_BlockAlign_BitDepthPerSample
+        // e.g. stereo, 4byte, 16 bit = encodeStereo_4_16(...)
+
+        bool encodeMono_1_8(const string& in, const string& out,
                         const lame_t& lame);
+        bool encodeMono_2_16(const string& in, const string& out,
+                            const lame_t& lame);
+        bool encodeStereo_2_8(const string& in, const string& out,
+                        const lame_t& lame);
+        bool encodeStereo_4_16(const string& in, const string& out,
+                          const lame_t& lame);
+
+        /************** ENCODE FUNCTIONS END *************/
 
     public:
+        //FIXME parameters are ambiguous....just use full path instead
         LameWrapper(const string &dir, const string &file);
 
         ~LameWrapper();
 
         void convertToMp3();
+
+        wh::WaveHeader getHeader() const {return *wh;}
+
+        bool hasValidWaveHeader() const {return wh != nullptr;}
 
         string getDir() const { return dir; }
 
@@ -45,10 +85,6 @@ namespace cinemo {
         string getFileName() const { return file; }
 
         bool isConverting() const { return isBusy; }
-
-        Wave* getWaveInfo() const { return waveFile; }
-
-        void setWaveInfo(Wave* wave);
 
         void printWaveInfo();
     };

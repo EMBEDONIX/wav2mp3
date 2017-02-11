@@ -1,3 +1,20 @@
+/*
+This file is part of EMBEDONIX/WAV2MP3.
+
+EMBEDONIX/WAV2MP3 is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License.
+
+EMBEDONIX/WAV2MP3 is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
 //
 // Created by saeid on 04.02.17.
 //
@@ -37,12 +54,35 @@ namespace cinemo {
      */
     bool containsValidWaveFiles(const string &dir);
 
+    /**
+     * @brief Check if a file has correct extension
+     * @param file the file to check
+     * @param ext the extension to check
+     * @return true on success, false on failure
+     */
     bool isValidFileType(const string &file, const char *ext);
 
-    int getFileSize(const string& file);
+    /**
+     * @brief Get the size of a file in bytes
+     * @param file the file to get its size
+     * @return size of the file in bytes
+     */
+    long getFileSize(const string& file);
 
+    /**
+     * @brief Get all valid wave files from a directory
+     * @param dir the directory to get wave files from
+     * @param workFiles the vector of {@see LameWrapper} to populate
+     * @return true on success, false if no wave files were found
+     */
     bool getWaveFiles(const string &dir, vector<LameWrapper> &workFiles);
 
+    /**
+     * @brief Changes extension of a file
+     * @param in the file to change its extension
+     * @param ext the extension to change too
+     * @return a string with the original extension is changed
+     */
     string changeExt(const string& in, const string& ext);
 }
 
