@@ -54,7 +54,7 @@ namespace wh {
         }
 
         //Check for file size requirements
-        int64_t fSize = f.tellg();
+        long fSize = f.tellg();
         wh->File = file;
         wh->FileSize = (uint32_t) fSize;
 

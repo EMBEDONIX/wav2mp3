@@ -23,11 +23,11 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <fstream>
 #include <sys/stat.h>
-#include <strings.h>
 #include <iostream>
 #include <regex>
 
-//Platform specific inludes
+//Platform specific includes
+
 #ifdef WIN32
 #include "win/dirent.h"
 #else
@@ -38,6 +38,7 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
 #endif
+
 
 namespace cinemo {
 
