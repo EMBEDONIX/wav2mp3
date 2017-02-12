@@ -24,7 +24,13 @@ add_executable(wav2mp3 ${SOURCE_FILES})
 
 #Finding lame library
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}}/cmake)
-find_package(mp3lame REQUIRED)
+include(./cmake/Findmp3lame.cmake)
+if (WiN32)
+    find_library(libmp3lame REQUIRED)
+else ()
+    find_package(mp3lame REQUIRED)
+endif ()
+
 if (MP3LAME_FOUND)
     set(EXTRA_LIBRARIES ${EXTRA_LIBRARIES} ${MP3LAME_LIBRARY})
     message(STATUS "MP3LAME Library was found in " ${MP3LAME_LIBRARY})

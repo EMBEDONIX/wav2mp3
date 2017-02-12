@@ -22,13 +22,19 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils.hpp"
 
 #include <fstream>
-
-//Platform specific includes
 #include <sys/stat.h>
-#include <dirent.h>
 #include <strings.h>
 #include <iostream>
 #include <regex>
+
+//Platform specific inludes
+#ifdef WIN32
+#include "win/dirent.h"
+#else
+
+#include <dirent.h>
+
+#endif
 
 namespace cinemo {
 

@@ -6,20 +6,36 @@
 
 set(MP3LAME_FOUND "NO")
 
-find_path(MP3LAME_INCLUDE_DIR lame/lame.h
-        HINTS
-        PATH_SUFFIXES include
-        PATHS
-        ~/Library/Frameworks
-        /Library/Frameworks
-        /usr/local/include
-        /usr/include
-        /sw/include
-        /opt/local/include
-        /opt/csw/include
-        /opt/include
-        /mingw
-        )
+if (WIN32)
+    find_path(MP3LAME_INCLUDE_DIR lame/lame.h
+            HINTS
+            PATH_SUFFIXES include
+            PATHS
+            C:/lame
+            C:/liblame
+            E:/Work/lame-3.99.5/
+            E:/Work/lame-3.99.5/output/Debug
+            E:/Work/lame-3.99.5/output/Release
+            )
+else ()
+    find_path(MP3LAME_INCLUDE_DIR lame/lame.h
+            HINTS
+            PATH_SUFFIXES include
+            PATHS
+            ~/Library/Frameworks
+            /Library/Frameworks
+            /usr/local/include
+            /usr/include
+            /sw/include
+            /opt/local/include
+            /opt/csw/include
+            /opt/include
+            /mingw
+            /opt/lame/include
+            /opt/lame
+            )
+endif ()
+
 
 find_library(MP3LAME_LIBRARY
         NAMES mp3lame
