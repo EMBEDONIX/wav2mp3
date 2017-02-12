@@ -61,13 +61,6 @@ namespace cinemo {
     bool isValidFileType(const string &file, const char *ext);
 
     /**
-     * @brief Get the size of a file in bytes
-     * @param file the file to get its size
-     * @return size of the file in bytes
-     */
-    long getFileSize(const string& file);
-
-    /**
      * @brief Get all valid wave files from a directory
      * @param dir the directory to get wave files from
      * @param workFiles the vector of {@see LameWrapper} to populate

@@ -48,7 +48,7 @@ namespace wh {
         //generate wave header struct
         WaveHeader* const wh = new WaveHeader;
 
-        if (f == nullptr && !f.good()) {
+        if (f && !f.good()) {
             wh->ErrorFlags.set(static_cast<int>(ERROR_FileIo), 1);
             return wh;
         }
@@ -94,10 +94,11 @@ namespace wh {
         }
 
         //next might be "fmt " but there is no guarantee!
-        long int posBeforeHeaderSearch = f.tellg();
+        long posBeforeHeaderSearch = f.tellg();
         header_pos fmt, fact, data, List;
         f.read(&buff[0], WaveBufferSize);
-        size_t read = (size_t) (f.tellg() - posBeforeHeaderSearch);
+        size_t read = (size_t) (static_cast<long>(f.tellg()) -
+                                posBeforeHeaderSearch);
         //for fmt and fact there is no guranatee which comes first
         //so the search function is called twice
         fmt = searchForHeader(buff, read, WaveFormatString);

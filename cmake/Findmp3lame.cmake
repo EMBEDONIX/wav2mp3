@@ -42,6 +42,7 @@ find_library(MP3LAME_LIBRARY
         HINTS
         PATH_SUFFIXES lib64 lib
         PATHS
+        /usr/lib/x86_64-linux-gnu/
         /usr/local
         /usr
         /sw

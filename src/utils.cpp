@@ -31,9 +31,12 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef WIN32
 #include "win/dirent.h"
 #else
-
 #include <dirent.h>
+#endif
 
+#ifdef _MSC_VER //for string compare ignore case, if on MSVC
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
 #endif
 
 namespace cinemo {
@@ -87,13 +90,6 @@ namespace cinemo {
         }
 
         return isValid;
-    }
-
-    long getFileSize(const string& file) {
-        std::ifstream is;
-        is.open(file, std::ios::in | std::ios::binary
-                      | std::ios::ate);
-        return is.tellg();
     }
 
     string changeExt(const string& in, const string& ext) {
