@@ -94,7 +94,7 @@ namespace wh {
         }
 
         //next might be "fmt " but there is no guarantee!
-        long posBeforeHeaderSearch = f.tellg();
+        long posBeforeHeaderSearch = static_cast<long>(f.tellg());
         header_pos fmt, fact, data, List;
         f.read(&buff[0], WaveBufferSize);
         size_t read = (size_t) (static_cast<long>(f.tellg()) -
