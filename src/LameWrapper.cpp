@@ -319,7 +319,6 @@ namespace cinemo {
                                            reinterpret_cast<short int*>(&wav_buff_r[0]),
                                            (const int) read / 2, mp3_buff,
                                            MP3_BUFF_SIZE);
-
             }
 
             //write encoded into mp3 file

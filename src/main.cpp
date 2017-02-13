@@ -20,12 +20,13 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <vector>
+#include <chrono>
+#include <iomanip>
 
 #ifdef WIN32
 #else
 
 #include <zconf.h>
-
 #endif
 
 #include "utils.hpp"
@@ -76,6 +77,11 @@ int main(int argc, char *argv[]) {
          << " wave files to be encoded to mp3.";
     cout << endl;
 
+
+    //Time measurement
+    auto startTime = std::chrono::system_clock::now();
+
+    //Do the actual work!
     for (auto& work : lw) {
         if (!work->isValidWaveFile()) {
             cout << work->getFileName()
@@ -98,7 +104,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    lw.clear();
+    //Calculate and print duration
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>
+            (std::chrono::system_clock::now() - startTime);
+    cout << "Encode time: "
+         << std::fixed << std::setprecision(3) << elapsed.count() / 1000.0
+         << " seconds." << endl;
 
+    lw.clear();
     return 0;
 }

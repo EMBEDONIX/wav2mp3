@@ -40,7 +40,7 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 //  "xxd" to visualise RIFF header in binary and ASCII
 //      e.g. "$xxd -b -c 4 -l 100 file.wav"
 //  "ffmpeg" to produce test files (ffmpeg appends lots of extra headers!!!)
-//      e.g. "$ffmpeg -i inpu.wav -ar 8000 -ac 1 -acodec pcm_u8 output.wav"
+//      e.g. "$ffmpeg -i input.wav -ar 8000 -ac 1 -acodec pcm_u8 output.wav"
 //
 //  Refer to man pages of the above commands for more info
 

@@ -63,13 +63,12 @@ namespace cinemo {
                         const lame_t& lame);
         bool encodeStereo_4_16(const string& in, const string& out,
                           const lame_t& lame);
-
         /************** ENCODE FUNCTIONS END *************/
 
     public:
 
-        static const int WAV_BUFF_SIZE = 8192;
-        static const int MP3_BUFF_SIZE = 8192;
+        static const int WAV_BUFF_SIZE = 1024 * 100;
+        static const int MP3_BUFF_SIZE = 1024 * 100;
 
         //FIXME parameters are ambiguous....just use full path instead
         LameWrapper(const string &dir, const string &file);
