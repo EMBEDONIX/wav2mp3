@@ -67,6 +67,10 @@ namespace cinemo {
         /************** ENCODE FUNCTIONS END *************/
 
     public:
+
+        static const int WAV_BUFF_SIZE = 8192;
+        static const int MP3_BUFF_SIZE = 8192;
+
         //FIXME parameters are ambiguous....just use full path instead
         LameWrapper(const string &dir, const string &file);
 

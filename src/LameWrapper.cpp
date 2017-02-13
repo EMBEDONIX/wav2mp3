@@ -206,7 +206,6 @@ namespace cinemo {
 
         std::streamsize read = 0, write = 0;
 
-        const int WAV_BUFF_SIZE = 8192, MP3_BUFF_SIZE = 8192;
         unsigned char wav_buff[WAV_BUFF_SIZE];
         short wav_buff_converted[WAV_BUFF_SIZE];
         unsigned char mp3_buff[MP3_BUFF_SIZE];
@@ -253,7 +252,6 @@ namespace cinemo {
 
         std::streamsize read = 0, write = 0;
 
-        const int WAV_BUFF_SIZE = 8192, MP3_BUFF_SIZE = 8192;
         short int wav_buff[WAV_BUFF_SIZE];
         unsigned char mp3_buff[MP3_BUFF_SIZE];
         wav.ignore(wh->DataBegin); //skip to data begin
@@ -298,7 +296,6 @@ namespace cinemo {
 
         std::streamsize read = 0, write = 0;
 
-        const int WAV_BUFF_SIZE = 8192, MP3_BUFF_SIZE = 8192;
         short int wav_buff[WAV_BUFF_SIZE]; //all channels
         char wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel
         char wav_buff_r[WAV_BUFF_SIZE / 2]; //right channel
@@ -351,7 +348,6 @@ namespace cinemo {
 
         std::streamsize read = 0, write = 0;
 
-        const int WAV_BUFF_SIZE = 8192, MP3_BUFF_SIZE = 8192;
         short int wav_buff[WAV_BUFF_SIZE]; //all channels
         short int wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel
         short int wav_buff_r[WAV_BUFF_SIZE / 2]; //right channel

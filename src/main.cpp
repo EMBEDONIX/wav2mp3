@@ -72,6 +72,9 @@ int main(int argc, char *argv[]) {
         numCores = 2;
     }
 
+    cout << "There are " << lw.size()
+         << " wave files to be encoded to mp3.";
+    cout << endl;
 
     for (auto& work : lw) {
         if (!work->isValidWaveFile()) {

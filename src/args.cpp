@@ -54,6 +54,7 @@ namespace cinemo {
                 } else if (arg1.find("v") == 1) {
                     optVerbose = true;
                     if (argc < 3) {
+                        workDir.append("/");
                         getWorkingDirectoryFromExec(workDir);
                     } else if (argc == 3) {
                         workDir = string(argv[2]);
@@ -65,6 +66,7 @@ namespace cinemo {
                 }
             } else {
                 workDir = string(argv[1]);
+                workDir.append("/");
                 getWorkingDirectoryFromExec(workDir);
             }
         }
