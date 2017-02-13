@@ -33,7 +33,7 @@ namespace wh {
 
     static const string WaveRIFFString = "RIFF";
     static const string WaveWaveIdString = "WAVE";
-    static const string WaveFormatString = "fmt "; //don't date touch that space!
+    static const string WaveFormatString = "fmt "; //don't dare touch that space!
     static const string WaveFactString = "fact";
     static const string WaveDataString = "data";
     static const string WaveListString = "LIST";

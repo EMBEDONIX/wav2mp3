@@ -58,7 +58,7 @@ namespace cinemo {
         return isValidWorkDirectory(exec);
     }
 
-    bool getWaveFiles(const string& dir, vector<LameWrapper>& workFiles) {
+    bool getWaveFiles(const string& dir, vector<LameWrapper*>& workFiles) {
         DIR* workDir = opendir(dir.c_str());
         if (workDir == nullptr) {
             return false;
@@ -67,8 +67,7 @@ namespace cinemo {
         dirent* dirIt = nullptr;
         while ((dirIt = readdir(workDir)) != nullptr) {
             if (isValidFileType(dirIt->d_name, extWave)) {
-                    LameWrapper lw = LameWrapper(dir, dirIt->d_name);
-                    workFiles.push_back(lw);
+                workFiles.push_back(new LameWrapper(dir, dirIt->d_name));
             }
         }
 

@@ -103,6 +103,16 @@ namespace cinemo {
         bool isConverting() const { return isBusy; }
 
         void printWaveInfo();
+
+        //Operator overloads
+
+        //delete copy assignment operator
+        LameWrapper& operator=(const LameWrapper&) = delete;
+
+        LameWrapper(const LameWrapper&) = delete;
+
+        LameWrapper() = default;
+
     };
 }
 

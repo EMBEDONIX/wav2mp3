@@ -66,7 +66,7 @@ namespace cinemo {
      * @param workFiles the vector of {@see LameWrapper} to populate
      * @return true on success, false if no wave files were found
      */
-    bool getWaveFiles(const string &dir, vector<LameWrapper> &workFiles);
+    bool getWaveFiles(const string& dir, vector<LameWrapper*>& workFiles);
 
     /**
      * @brief Changes extension of a file

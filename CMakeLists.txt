@@ -15,6 +15,7 @@ endif ()
 include_directories(include)
 set(SOURCE_FILES
         src/main.cpp
+        src/args.cpp
         src/utils.cpp
         src/LameWrapper.cpp
         src/wave_header.cpp

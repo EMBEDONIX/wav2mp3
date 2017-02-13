@@ -36,15 +36,12 @@ namespace cinemo {
     }
 
     LameWrapper::~LameWrapper() {
-        //no need to delete wh, its being used by workfiles vector in main
+        delete wh;
     }
 
     void LameWrapper::printWaveInfo() {
         if (wh != nullptr) {
             wh::printWaveHeader(getHeader());
-        } else {
-            cout << getFullPath() << " Appears to be an invalid or "
-                    "corrupted WAV file!" << endl;
         }
     }
 
@@ -390,4 +387,5 @@ namespace cinemo {
              << endl;
         return false;
     }
+
 }
