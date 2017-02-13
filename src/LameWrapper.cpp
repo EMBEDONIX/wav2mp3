@@ -199,7 +199,7 @@ namespace cinemo {
         std::ofstream mp3(out, std::ios_base::out | std::ios_base::trunc |
                                std::ios_base::binary);
 
-        //just to make sure...
+
         if (!wav.is_open() || !mp3.is_open()) {
             return false;
         }
@@ -208,13 +208,13 @@ namespace cinemo {
 
         const int WAV_BUFF_SIZE = 8192, MP3_BUFF_SIZE = 8192;
         unsigned char wav_buff[WAV_BUFF_SIZE];
+        short wav_buff_converted[WAV_BUFF_SIZE];
         unsigned char mp3_buff[MP3_BUFF_SIZE];
         wav.ignore(wh->DataBegin); //skip to data begin
 
         do {
             //read from wave file
-            wav.read(reinterpret_cast<char*>(&wav_buff[0]),
-                     sizeof(wav_buff[0]) * WAV_BUFF_SIZE);
+            wav.read(reinterpret_cast<char*>(&wav_buff[0]), WAV_BUFF_SIZE);
             read = wav.gcount();
 
             if (read == 0) { //reading from wav file has ended!
@@ -222,9 +222,14 @@ namespace cinemo {
                                           reinterpret_cast<unsigned char*>(&mp3_buff),
                                           MP3_BUFF_SIZE);
             } else { //encoding
+
+                for (int i = 0; i < read; i++) {
+                    wav_buff_converted[i] = (short) (wav_buff[i] - 0x80) << 8;
+                }
+
                 write = lame_encode_buffer(lame,
-                                           reinterpret_cast<const short*>(&wav_buff[0]),
-                                           nullptr, (const int) read / 4,
+                                           &wav_buff_converted[0],
+                                           nullptr, read,
                                            mp3_buff, MP3_BUFF_SIZE);
             }
             mp3.write(reinterpret_cast<char*>(&mp3_buff), write);

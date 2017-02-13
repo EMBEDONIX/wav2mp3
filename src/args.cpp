@@ -83,7 +83,7 @@ namespace cinemo {
 
     void args::printCopyrights() {
         cout
-                << "Wave to Mp3 converter v0.1 by Saeid Yazdani, www.embedonix.com | "
+                << "\nWave to Mp3 converter v0.1 by Saeid Yazdani, www.embedonix.com | "
                 << "Linked against libmp3lame " << get_lame_version() << "\n"
                 << "This open source program is licensed under GPL v3.\n"
                 << "As a free software, nothing is guaranteed. I wish you a no-crash experience.\n"
