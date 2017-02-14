@@ -30,7 +30,7 @@ using std::string;
 using std::vector;
 namespace cinemo {
 
-    int args::processArgs(int argc, char* argv[], bool& optVerbose,
+    int args::processArgs(int argc, char* argv[], args::Options& options,
                           vector<LameWrapper*>& lw) {
 
         string workDir;
@@ -52,7 +52,15 @@ namespace cinemo {
                     wh::printFlags();
                     return 0;
                 } else if (arg1.find("v") == 1) {
-                    optVerbose = true;
+                    options.verbose = true;
+                    if (argc < 3) {
+                        workDir.append("/");
+                        getWorkingDirectoryFromExec(workDir);
+                    } else if (argc == 3) {
+                        workDir = string(argv[2]);
+                    }
+                } else if (arg1.find("n") == 1) {
+                    options.noThread = true;
                     if (argc < 3) {
                         workDir.append("/");
                         getWorkingDirectoryFromExec(workDir);
@@ -102,8 +110,11 @@ namespace cinemo {
                 << " under the same name with mp3 extension.\n"
                 << "\"wav2mp3 [-v] [current directory/path]\"\n\tsame as above"
                 << " but with verbose output messages.\n"
+                << "\"wav2mp3 [-n] [current directory/path]\"\n\tsame as above"
+                << " but not using threads! used for comparison only!\n"
                 << "\"wav2mp3 -e\"\n\tprints explanation about error/warning flags.\n"
-                << "\"wav2mp3 -h\"\n\tprints this help."
+                << "\"wav2mp3 -h\"\n\tprints this help.\nNote: [-v] and [-n] can not"
+                << " be used at the same time (yet!)."
                 << endl;
     }
 

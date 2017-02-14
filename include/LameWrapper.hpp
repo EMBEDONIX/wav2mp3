@@ -105,6 +105,8 @@ namespace cinemo {
 
         bool isConverting() const { return isBusy; }
 
+        bool isFinished() const { return isDone; }
+
         void printWaveInfo();
 
         //Operator overloads

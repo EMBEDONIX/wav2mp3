@@ -27,6 +27,7 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #else
 
 #include <zconf.h>
+
 #endif
 
 #include "utils.hpp"
@@ -39,18 +40,36 @@ using std::endl;
 using namespace cinemo;
 
 /**
- * @brief Number of threads for encoding
+ * @brief Function for performing encoding on a thread
+ * @param arg Pointer to a LameWrapper object
+ * @return void???
  */
+static void* doWork(void* arg) {
+    LameWrapper* lw = static_cast<LameWrapper*>(arg);
+    lw->convertToMp3(0);
+}
 
-int main(int argc, char *argv[]) {
+
+bool checkAndPrintFileValidity(const LameWrapper& lw) {
+    bool result = true;
+    if (!lw.isValidWaveFile()) {
+        cout << lw.getFileName()
+             << " Appears to be invalid or corrupted. Check the Error/Warning flags."
+             << endl;
+        result = false;
+    }
+    return result;
+}
+
+
+int main(int argc, char* argv[]) {
 
     args::printCopyrights();
-
-    bool optVerbose(false);
+    args::Options options;
     string workDir;
     vector<LameWrapper*> lw;
 
-    int retVal = args::processArgs(argc, argv, optVerbose, lw);
+    int retVal = args::processArgs(argc, argv, options, lw);
 
     if (retVal > 0) {
         return retVal;
@@ -70,37 +89,60 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (numCores <= 0) {
-        numCores = 2;
+        numCores = 2; //Rule of thumb!!!!!!
     }
 
     cout << "There are " << lw.size()
          << " wave files to be encoded to mp3.";
     cout << endl;
 
-
     //Time measurement
     auto startTime = std::chrono::system_clock::now();
 
-    //Do the actual work!
-    for (auto& work : lw) {
-        if (!work->isValidWaveFile()) {
-            cout << work->getFileName()
-                 << " Appears to be invalid or corrupted."
-                 << endl;
-            continue;
+    int numFiles = 0;
+    for (auto& file : lw) {
+        numFiles++;
+    }
+
+    if (!options.noThread || numFiles != 1) {
+
+        pthread_t* t = new pthread_t[numCores];
+        int* results = new int[numFiles * 2];
+
+        /*FIXME for single file or last loop where files that does not fit in the numCores range
+         this method is inefficent...I know the solution but haven't got time right now
+        */
+        for (int i = 0; i < numFiles; i += numCores) {
+            int k = i; //threads per loop
+            int l = 0; //number of jobs per loop
+            for (int j = 0; j < numCores && (k < numFiles); ++j) {
+                cout << "File #" << k << " => " << lw[k]->getFileName() << endl;
+                if (!checkAndPrintFileValidity(*lw[k])) {
+                    continue;
+                }
+                if (options.verbose) {
+                    lw[k]->printWaveInfo();
+                }
+                results[i] = pthread_create(&t[j], NULL, doWork, lw[k++]);
+                l++;
+            }
+            for (int j = 0; j < l; ++j) {
+                pthread_join(t[j], NULL);
+            }
         }
-        cout << "\nStarting conversion of " << work->getFileName() << endl;
-        if (optVerbose) {
-            work->printWaveInfo();
-        }
-        cout << "Converting...";
-        if (optVerbose) {
-            cout << endl;
-        }
-        if (work->convertToMp3()) {
-            cout << "Done." << endl;
-        } else {
-            cout << "canceled." << endl;
+        //TODO check results!!!
+        delete t, results;
+    } else { //single thread mode for comparison with -n switch
+        int i = 0; //TODO start from 1?
+        for (auto& work : lw) {
+            if (!checkAndPrintFileValidity(*work)) {
+                continue;
+            }
+            cout << "File #" << i++ << " => " << work->getFileName() << endl;
+            if (options.verbose) {
+                work->printWaveInfo();
+            }
+            work->convertToMp3(0);
         }
     }
 

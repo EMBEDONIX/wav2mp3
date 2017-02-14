@@ -30,16 +30,26 @@ using std::vector;
 
 namespace cinemo {
     //TODO move to its own header/src
+    /**
+     * @brief Contains functions for parsing command line options
+     */
     namespace args {
+
+        struct Options {
+            bool help = false;
+            bool verbose = false;
+            bool noThread = false;
+        };
+
         /**
          * @brief Validates input arguments of the program.
          * @param argc Number of arguments.
          * @param argv Array of char as arguments.
-         * @param optVerbose To set the verbose flag
+         * @param options To set the provided options
          * @param lw vector of {@see LameWrapper} pointers to fill
          * @return in case of wrong arguments -1, otherwise 0
          */
-        int processArgs(int argc, char* argv[], bool& optVerbose,
+        int processArgs(int argc, char* argv[], Options& options,
                         vector<LameWrapper*>& lw);
 
         /**
