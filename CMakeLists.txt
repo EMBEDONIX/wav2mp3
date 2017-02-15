@@ -6,19 +6,29 @@ set(CMAKE_CXX_STANDARD 11)
 #platform specific stuff
 if (WIN32)
     add_definitions(-DWIN32)
+    include_directories(include/win/)
 else () #asume linux
     add_definitions(-DLINUX)
-    add_definitions(-DDEBUG)
+    #test with high optimization
+    if (CMAKE_BUILD_TYPE EQUAL "Releae")
+        message(STATUS "Build type is Release under Linux")
+        set(CMAKE_CXX_FLAGS "-O4") #optimize
+        set(CMAKE_EXE_LINKER_FLAGS "-s") #strip symbols
+    endif ()
+    if (COPY_TEST_FILES EQUAL "no")
+        message(STATUS "NO TEST!")
+    endif ()
 endif ()
 
 #headers and sources
-include_directories(include)
+include_directories(include/)
 set(SOURCE_FILES
         src/main.cpp
         src/args.cpp
         src/utils.cpp
         src/LameWrapper.cpp
         src/wave_header.cpp
+        src/threading.cpp
         )
 
 add_executable(wav2mp3 ${SOURCE_FILES})

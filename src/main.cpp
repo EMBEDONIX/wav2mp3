@@ -23,31 +23,15 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <chrono>
 #include <iomanip>
 
-#ifdef WIN32
-#else
-
-#include <zconf.h>
-
-#endif
-
 #include "utils.hpp"
 #include "args.hpp"
+#include "threading.hpp"
 
 using std::vector;
 using std::string;
 using std::cout;
 using std::endl;
 using namespace cinemo;
-
-/**
- * @brief Function for performing encoding on a thread
- * @param arg Pointer to a LameWrapper object
- * @return void???
- */
-static void* doWork(void* arg) {
-    LameWrapper* lw = static_cast<LameWrapper*>(arg);
-    lw->convertToMp3(0);
-}
 
 
 bool checkAndPrintFileValidity(const LameWrapper& lw) {
@@ -60,7 +44,6 @@ bool checkAndPrintFileValidity(const LameWrapper& lw) {
     }
     return result;
 }
-
 
 int main(int argc, char* argv[]) {
 
@@ -79,18 +62,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    long numCores = -1;
-#ifdef WIN32
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-    numCores = sysinfo.dwNumberOfProcessors;
-#else
-    numCores = sysconf(_SC_NPROCESSORS_ONLN);
-#endif
-
-    if (numCores <= 0) {
-        numCores = 2; //Rule of thumb!!!!!!
-    }
+    long numCores = threading::getCpuCoreCount();
 
     cout << "There are " << lw.size()
          << " wave files to be encoded to mp3.";
@@ -104,7 +76,7 @@ int main(int argc, char* argv[]) {
         numFiles++;
     }
 
-    if (!options.noThread || numFiles != 1) {
+    if (!options.noThread) {
 
         pthread_t* t = new pthread_t[numCores];
         int* results = new int[numFiles * 2];
@@ -123,7 +95,8 @@ int main(int argc, char* argv[]) {
                 if (options.verbose) {
                     lw[k]->printWaveInfo();
                 }
-                results[i] = pthread_create(&t[j], NULL, doWork, lw[k++]);
+                results[i] = pthread_create(&t[j], NULL, threading::doWork,
+                                            lw[k++]);
                 l++;
             }
             for (int j = 0; j < l; ++j) {

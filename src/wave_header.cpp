@@ -45,16 +45,16 @@ namespace wh {
 
         std::ifstream f(file, std::ios::in | std::ios::binary |
                               std::ios::ate);
-        //generate wave header struct
+
         WaveHeader* const wh = new WaveHeader;
 
-        if (f && !f.good()) {
+        if (!f || !f.good()) {
             wh->ErrorFlags.set(static_cast<int>(ERROR_FileIo), 1);
             return wh;
         }
 
         //Check for file size requirements
-        long fSize = f.tellg();
+        long fSize = f.tellg(); //file is opened at the end
         wh->File = file;
         wh->FileSize = (uint32_t) fSize;
 
@@ -201,11 +201,6 @@ namespace wh {
             return;
         }
 
-/*        //format is extended, still work to do ;)
-        //how many bytes left to read?
-        file.read(reinterpret_cast<char*>(&wh->ExtensionSize),
-                  sizeof(wh->ExtensionSize));*/
-
         //standard extension sizes are 0 or 22 (0 is set by default in the struct)
         if(wh->ExtensionSize != 0 && wh->ExtensionSize != 22) {
             wh->WarningFlags.set(
@@ -248,13 +243,6 @@ namespace wh {
                                    header_pos dp) {
         //FIXME figure out how to read LIST header chunks...
         //no source for it yet :(
-
-//        file.seekg(dp.second, std::ios::beg);
-//        char buff[WaveBufferSize];
-//        //get format size
-//        file.read(&buff[0], 4);
-//        wh->FactSize = convert4CharTo16_BigEndian(&buff[0]);
-
     }
 
     uint32_t convert4CharTo16_BigEndian(char* const buff) {
