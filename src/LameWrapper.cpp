@@ -48,7 +48,7 @@ namespace cinemo {
     int LameWrapper::getLameFlags(lame_t l, int quality) {
         //get information from wave file
         int32_t sample_rate = wh->SampleRate;
-        int32_t byte_rate = wh->ByteRate;
+        //int32_t byte_rate = wh->ByteRate;
         int16_t channels = wh->NumberOfChannels;
 
         lame_set_quality(l, quality);
@@ -343,7 +343,7 @@ namespace cinemo {
 
         std::streamsize read = 0, write = 0;
 
-        short int wav_buff[WAV_BUFF_SIZE]; //all channels
+        //short int wav_buff[WAV_BUFF_SIZE]; //all channels
         short int wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel
         short int wav_buff_r[WAV_BUFF_SIZE / 2]; //right channel
         unsigned char mp3_buff[MP3_BUFF_SIZE];
