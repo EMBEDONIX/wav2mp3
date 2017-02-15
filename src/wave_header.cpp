@@ -89,7 +89,7 @@ namespace wh {
         f.read(&buff[0], 4);
         wh->WaveId = string(&buff[0], 4);
         if (wh->WaveId != WaveWaveIdString) {
-            wh->WarningFlags.set(static_cast<int>(ERROR_NoWaveChunk), 1);
+            wh->ErrorFlags.set(static_cast<int>(ERROR_NoWaveChunk), 1);
             return wh; //because there is no point in reading rest of the file
         }
 

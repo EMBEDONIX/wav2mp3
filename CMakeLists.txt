@@ -10,14 +10,14 @@ if (WIN32)
 else () #asume linux
     add_definitions(-DLINUX)
     #test with high optimization
-    if (CMAKE_BUILD_TYPE EQUAL "Releae")
-        message(STATUS "Build type is Release under Linux")
-        set(CMAKE_CXX_FLAGS "-O4") #optimize
-        set(CMAKE_EXE_LINKER_FLAGS "-s") #strip symbols
-    endif ()
-    if (COPY_TEST_FILES EQUAL "no")
-        message(STATUS "NO TEST!")
-    endif ()
+    #    if (CMAKE_BUILD_TYPE EQUAL "Release")
+    #        message(STATUS "Build type is Release under Linux")
+    #        set(CMAKE_CXX_FLAGS "-O4") #optimize
+    #        set(CMAKE_EXE_LINKER_FLAGS "-s") #strip symbols
+    #    endif ()
+    #    if (COPY_TEST_FILES EQUAL "no")
+    #        message(STATUS "NO TEST!")
+    #    endif ()
 endif ()
 
 #headers and sources

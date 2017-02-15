@@ -34,16 +34,7 @@ using std::endl;
 using namespace cinemo;
 
 
-bool checkAndPrintFileValidity(const LameWrapper& lw) {
-    bool result = true;
-    if (!lw.isValidWaveFile()) {
-        cout << lw.getFileName()
-             << " Appears to be invalid or corrupted. Check the Error/Warning flags."
-             << endl;
-        result = false;
-    }
-    return result;
-}
+
 
 int main(int argc, char* argv[]) {
 
@@ -62,8 +53,6 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    long numCores = threading::getCpuCoreCount();
-
     cout << "There are " << lw.size()
          << " wave files to be encoded to mp3.";
     cout << endl;
@@ -71,58 +60,30 @@ int main(int argc, char* argv[]) {
     //Time measurement
     auto startTime = std::chrono::system_clock::now();
 
-    int numFiles = 0;
-    for (auto& file : lw) {
-        numFiles++;
-    }
-
     if (!options.noThread) {
-
-        pthread_t* t = new pthread_t[numCores];
-        int* results = new int[numFiles * 2];
-
-        /*FIXME for single file or last loop where files that does not fit in the numCores range
-         this method is inefficent...I know the solution but haven't got time right now
-        */
-        for (int i = 0; i < numFiles; i += numCores) {
-            int k = i; //threads per loop
-            int l = 0; //number of jobs per loop
-            for (int j = 0; j < numCores && (k < numFiles); ++j) {
-                cout << "File #" << k << " => " << lw[k]->getFileName() << endl;
-                if (!checkAndPrintFileValidity(*lw[k])) {
-                    continue;
-                }
-                if (options.verbose) {
-                    lw[k]->printWaveInfo();
-                }
-                results[i] = pthread_create(&t[j], NULL, threading::doWork,
-                                            lw[k++]);
-                l++;
-            }
-            for (int j = 0; j < l; ++j) {
-                pthread_join(t[j], NULL);
-            }
-        }
-        //TODO check results!!!
-        delete t, results;
+        threading::doMultiThreadedConversion(lw, options);
     } else { //single thread mode for comparison with -n switch
-        int i = 0; //TODO start from 1?
-        for (auto& work : lw) {
-            if (!checkAndPrintFileValidity(*work)) {
-                continue;
-            }
-            cout << "File #" << i++ << " => " << work->getFileName() << endl;
-            if (options.verbose) {
-                work->printWaveInfo();
-            }
-            work->convertToMp3(0);
-        }
+        threading::doSingleThreadedConversion(lw, options);
     }
 
-    //Calculate and print duration
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>
             (std::chrono::system_clock::now() - startTime);
-    cout << "Encode time: "
+
+    //write encoding results
+    cout << "\nResults: " << endl;
+    int success = 0, failure = 0;
+    for (auto& file : lw) { //could do with for_each and lambda...
+        if (file->isFinished()) {
+            success++;
+        } else {
+            failure++;
+        }
+    }
+
+    cout << "Converted " << success << " files and skipped "
+         << failure << "." << endl;
+
+    cout << "\nEncode time: "
          << std::fixed << std::setprecision(3) << elapsed.count() / 1000.0
          << " seconds." << endl;
 

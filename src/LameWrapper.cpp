@@ -127,7 +127,7 @@ namespace cinemo {
                                                                  "mp3"), l);
                                 break; //mono 16bit end
                             default:
-                                cout << "Encoding of files with bit depth of "
+                                cout << "\tEncoding of files with bit depth of "
                                      << wh->BitsPerSample
                                      << " is not yet implemented!";
                                 break;
@@ -152,7 +152,7 @@ namespace cinemo {
                                 break;
 
                             default:
-                                cout << "Encoding of files with bit depth of "
+                                cout << "\tEncoding of files with bit depth of "
                                      << wh->BitsPerSample
                                      << " is not yet implemented!";
                                 break;
@@ -161,7 +161,7 @@ namespace cinemo {
                         break;
 
                     default:
-                        cout << "Conversion of wave files with "
+                        cout << "\tConversion of wave files with "
                              << wh->NumberOfChannels
                              << " channels is not supported"
                              << endl;
@@ -175,16 +175,12 @@ namespace cinemo {
                 break;
 
             default: //all other cases
-                cout << "Conversion of files with format 0x" << std::hex
+                cout << "\tConversion of files with format 0x" << std::hex
                      << +wh->FormatAudioType
                      << std::dec << " (" << wh->FormatAudioType << ")"
                      << " is not yet supported."
                      << endl;
                 break;
-        }
-
-        if (!isDone) {
-            cout << getFullPath() << " Was not converted!" << endl;
         }
 
         lame_close(l);
@@ -383,7 +379,7 @@ namespace cinemo {
 
     bool LameWrapper::encodeAlreadyMp3(const string& in, const string& out,
                                        const lame_t& lame) {
-        cout << "File is already encoded as MP3, just change the extension!!"
+        cout << "\tFile is already encoded as MP3, just change the extension!!"
              << endl;
         return false;
     }
