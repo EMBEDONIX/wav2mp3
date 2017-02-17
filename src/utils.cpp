@@ -57,11 +57,15 @@ namespace cinemo {
 
     bool getWorkingDirectoryFromExec(string& exec) {
 		std::cout << "getWorkingDirectoryFromExec => " << exec << std::endl;
-		if(*exec.rbegin() != PATH_SEPARATOR)
-		{
+
+#ifdef WIN32
+		if (*exec.rbegin() != PATH_SEPARATOR) { 
 			exec = exec.append(1, PATH_SEPARATOR);
 		}
-        //exec = exec.substr(0, string(exec).find_last_of(PATH_SEPARATOR));
+#else
+		exec = exec.substr(0, string(exec).find_last_of(PATH_SEPARATOR));
+#endif
+
         return isValidWorkDirectory(exec);
     }
 
