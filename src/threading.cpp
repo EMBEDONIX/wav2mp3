@@ -77,23 +77,23 @@ namespace cinemo {
                     lw[k]->printWaveInfo();
                 }
                 if (k + 1 == numFiles) { //do last job on main thread
-                    lw[k++]->convertToMp3();
+                    lw[k]->convertToMp3();
                     break;
                 }
                 activeThreads.push_back(j); //to see for which to wait to join
-                results[i] = pthread_create(&t[j], NULL, threading::doWork,
+                results[i] = pthread_create(&t[j], nullptr, threading::doWork,
                                             lw[k++]);
             }
 
             for_each(begin(activeThreads), end(activeThreads),
                      [&](int& activeIndex) {
-                         pthread_join(t[activeIndex], NULL);
+                         pthread_join(t[activeIndex], nullptr);
                      });
             activeThreads.clear();
             cout << endl;
         }
         //TODO check results!!!
-        delete t, results;
+        delete[] t, results;
     }
 
     void threading::doSingleThreadedConversion(

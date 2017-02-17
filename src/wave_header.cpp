@@ -22,7 +22,6 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <fstream>
-#include <cstring>
 #include <iomanip>
 
 using std::cout;
@@ -56,7 +55,7 @@ namespace wh {
         //Check for file size requirements
         long fSize = f.tellg(); //file is opened at the end
         wh->File = file;
-        wh->FileSize = (uint32_t) fSize;
+        wh->FileSize = static_cast<uint32_t>(fSize);
 
         if (fSize < WaveMinLength) {
             f.close();
@@ -97,8 +96,8 @@ namespace wh {
         long posBeforeHeaderSearch = static_cast<long>(f.tellg());
         header_pos fmt, fact, data, List;
         f.read(&buff[0], WaveBufferSize);
-        size_t read = (size_t) (static_cast<long>(f.tellg()) -
-                                posBeforeHeaderSearch);
+        size_t read = static_cast<size_t>(static_cast<long>(f.tellg()) -
+	        posBeforeHeaderSearch);
         //for fmt and fact there is no guranatee which comes first
         //so the search function is called twice
         fmt = searchForHeader(buff, read, WaveFormatString);
@@ -179,7 +178,7 @@ namespace wh {
                   sizeof(wh->BitsPerSample));
 
         //check if file is standard fmt with 16 fmt bytes or extended!
-        long readSoFar = ((long)(file.tellg()) - dp.second - 4); //4 is for "fmt "
+        long readSoFar = (static_cast<long>(file.tellg()) - dp.second - 4); //4 is for "fmt "
         long leftToRead = wh->FormatSize - readSoFar;
 
         if(leftToRead == 0) { //Standard FMT read is complete
@@ -233,7 +232,7 @@ namespace wh {
                                header_pos dp) {
         file.seekg(dp.second, std::ios::beg);
         file.read(reinterpret_cast<char*>(&wh->DataSize), sizeof(wh->DataSize));
-        wh->DataBegin = (uint32_t) file.tellg();
+        wh->DataBegin = static_cast<uint32_t>(file.tellg());
         //in a correctly formatted wave file, we should reach end of file
         //after "DataSize" bytes
         //TODO check if file ends at where it should end! (mind the pad byte if exists)
@@ -246,8 +245,8 @@ namespace wh {
     }
 
     uint32_t convert4CharTo16_BigEndian(char* const buff) {
-        return (uint32_t) (buff[0] | (buff[1] << 8) | (buff[2] << 16) |
-                           (buff[3] << 24));
+        return static_cast<uint32_t>(buff[0] | (buff[1] << 8) | (buff[2] << 16) |
+	        (buff[3] << 24));
     }
 
     void printWaveHeader(const WaveHeader& wh) {
@@ -342,7 +341,7 @@ namespace wh {
     header_pos searchForHeader(char* buff, size_t size, const string& s) {
         header_pos dp(false, -1);
         string b(buff, size);
-        int pos = (int) b.find(s);
+        int pos = static_cast<int>(b.find(s));
 
         if (pos >= 0) {
             dp.first = true;

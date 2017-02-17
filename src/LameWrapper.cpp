@@ -31,8 +31,8 @@ using std::endl;
 namespace cinemo {
 
     LameWrapper::LameWrapper(const string& dir, const string& file)
-            : dir(dir), file(file), path(dir + "/" + file), isBusy(false),
-              isDone(false), wh(wh::parseWaveHeader(path)) {
+            : dir(dir), file(file), path(dir + "/" + file), wh(wh::parseWaveHeader(path)),
+              isBusy(false), isDone(false) {
     }
 
     LameWrapper::~LameWrapper() {
@@ -197,7 +197,7 @@ namespace cinemo {
             return false;
         }
 
-        std::streamsize read = 0, write = 0;
+        std::streamsize read, write;
 
         unsigned char wav_buff[WAV_BUFF_SIZE];
         short wav_buff_converted[WAV_BUFF_SIZE];
@@ -216,7 +216,7 @@ namespace cinemo {
             } else { //encoding
 
                 for (int i = 0; i < read; i++) {
-                    wav_buff_converted[i] = (short) (wav_buff[i] - 0x80) << 8;
+                    wav_buff_converted[i] = static_cast<short>(wav_buff[i] - 0x80) << 8;
                 }
 
                 write = lame_encode_buffer(lame,
@@ -243,7 +243,7 @@ namespace cinemo {
             return false;
         }
 
-        std::streamsize read = 0, write = 0;
+        std::streamsize read, write;
 
         short int wav_buff[WAV_BUFF_SIZE];
         unsigned char mp3_buff[MP3_BUFF_SIZE];
@@ -261,7 +261,7 @@ namespace cinemo {
                                           MP3_BUFF_SIZE);
             } else { //encoding
                 write = lame_encode_buffer(lame, &wav_buff[0], nullptr,
-                                           (const int) (read / 2), mp3_buff,
+                                           static_cast<const int>(read / 2), mp3_buff,
                                            MP3_BUFF_SIZE);
             }
             mp3.write(reinterpret_cast<char*>(&mp3_buff), write);
@@ -287,9 +287,8 @@ namespace cinemo {
             return false;
         }
 
-        std::streamsize read = 0, write = 0;
+        std::streamsize read, write;
 
-        short int wav_buff[WAV_BUFF_SIZE]; //all channels
         char wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel
         char wav_buff_r[WAV_BUFF_SIZE / 2]; //right channel
         unsigned char mp3_buff[MP3_BUFF_SIZE];
@@ -298,7 +297,7 @@ namespace cinemo {
 
         do {
             //read from wave file
-            wav.read(&wav_buff_l[0], sizeof(wav_buff[0]) * WAV_BUFF_SIZE);
+            wav.read(&wav_buff_l[0], sizeof(short int) * WAV_BUFF_SIZE);
             //getChunkAsStereo8(wav_buff, wav_buff_l, wav_buff_r, WAV_BUFF_SIZE);
             read = wav.gcount();
 
@@ -310,7 +309,7 @@ namespace cinemo {
                 write = lame_encode_buffer(lame,
                                            reinterpret_cast<short int*>(&wav_buff_l[0]),
                                            reinterpret_cast<short int*>(&wav_buff_r[0]),
-                                           (const int) read / 2, mp3_buff,
+                                           static_cast<const int>(read) / 2, mp3_buff,
                                            MP3_BUFF_SIZE);
             }
 
@@ -338,7 +337,7 @@ namespace cinemo {
             return false;
         }
 
-        std::streamsize read = 0, write = 0;
+        std::streamsize read, write;
 
         //short int wav_buff[WAV_BUFF_SIZE]; //all channels
         short int wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel

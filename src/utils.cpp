@@ -64,7 +64,7 @@ namespace cinemo {
             return false;
         }
 
-        dirent* dirIt = nullptr;
+        dirent* dirIt;
         while ((dirIt = readdir(workDir)) != nullptr) {
             if (isValidFileType(dirIt->d_name, extWave)) {
                 workFiles.push_back(new LameWrapper(dir, dirIt->d_name));
