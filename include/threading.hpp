@@ -5,7 +5,6 @@
 #ifndef CINEMO_THREADING_HPP
 #define CINEMO_THREADING_HPP
 
-
 #include <vector>
 #include "LameWrapper.hpp"
 #include "args.hpp"

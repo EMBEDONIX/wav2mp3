@@ -18,10 +18,14 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 // Created by saeid on 12.02.17.
 //
 
-#include "args.hpp"
 #include <iostream>
+#include "args.hpp"
 
 #include "utils.hpp"
+
+#ifdef WIN32
+#include "win/dirent.h"
+#endif
 
 
 using std::cout;
@@ -41,6 +45,25 @@ namespace cinemo {
         workDir = argv[0];
 
         if (argc == 1) {
+
+#ifdef WIN32
+			//If no arguments given, this code finds the current exe directory
+			//FIXME this assumes system is not UNICODE
+			HMODULE hModule = GetModuleHandleW(nullptr);
+			WCHAR buffer[MAX_PATH];
+			GetModuleFileNameW(hModule, buffer, MAX_PATH);
+			char path[MAX_PATH * 2];
+			std::wcstombs(path, buffer, MAX_PATH * 2);
+			string exePath(path);
+			int rIndex = exePath.find_last_of(PATH_SEPARATOR);
+			if(rIndex == 0 || rIndex == string::npos) {
+				cout << "Can not determine the current executable directory,"
+					<< " please pass the directory as an argument."
+					<< " Use -h for more information.";
+				return 1;
+			}
+			workDir = exePath.substr(0, rIndex);
+#endif
             getWorkingDirectoryFromExec(workDir);
         } else if (argc == 2 || argc == 3) {
             arg1 = string(argv[1]);
@@ -54,7 +77,6 @@ namespace cinemo {
                 } else if (arg1.find("v") == 1) {
                     options.verbose = true;
                     if (argc < 3) {
-                        workDir.append("/");
                         getWorkingDirectoryFromExec(workDir);
                     } else if (argc == 3) {
                         workDir = string(argv[2]);
@@ -62,7 +84,6 @@ namespace cinemo {
                 } else if (arg1.find("n") == 1) {
                     options.noThread = true;
                     if (argc < 3) {
-                        workDir.append("/");
                         getWorkingDirectoryFromExec(workDir);
                     } else if (argc == 3) {
                         workDir = string(argv[2]);
@@ -74,7 +95,6 @@ namespace cinemo {
                 }
             } else {
                 workDir = string(argv[1]);
-                workDir.append("/");
                 getWorkingDirectoryFromExec(workDir);
             }
         }

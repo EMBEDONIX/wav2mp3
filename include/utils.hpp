@@ -27,6 +27,12 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include "LameWrapper.hpp"
 #include "args.hpp"
 
+#ifdef WIN32
+#define PATH_SEPARATOR  '\\'
+#else
+#define PATH_SEPARATOR  '/'
+#endif
+
 using std::string;
 using std::vector;
 

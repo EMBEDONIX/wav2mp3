@@ -40,13 +40,13 @@ namespace cinemo {
         delete wh;
     }
 
-    void LameWrapper::printWaveInfo() {
+    void LameWrapper::printWaveInfo() const{
         if (wh != nullptr) {
             wh::printWaveHeader(getHeader());
         }
     }
 
-    int LameWrapper::getLameFlags(lame_t l) {
+    int LameWrapper::getLameFlags(lame_t l) const {
         //get information from wave file
         int32_t sample_rate = wh->SampleRate;
         //int32_t byte_rate = wh->ByteRate;
