@@ -32,9 +32,7 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #define PATH_SEPARATOR  "\\"
 #else
 #define PATH_SEPARATOR  "/"
-
 #include <dirent.h>
-
 #endif
 
 #ifdef _MSC_VER //for string compare ignore case, if on MSVC
@@ -51,12 +49,8 @@ namespace cinemo {
     static const char* extWave = "wav";
 
     bool isValidWorkDirectory(const string& dir) {
-#ifdef WIN32
-        //TODO implement for windows
-#else
         struct stat st;
         return stat(dir.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
-#endif
     }
 
     bool getWorkingDirectoryFromExec(string& exec) {

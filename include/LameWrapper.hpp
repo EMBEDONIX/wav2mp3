@@ -31,7 +31,12 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "wave_header.hpp"
+#if WIN32
+#include "win/lame.h"
+#else
 #include "lame/lame.h"
+#endif
+
 
 using std::string;
 

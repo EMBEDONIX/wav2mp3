@@ -3,17 +3,17 @@
 //
 
 
-#ifdef WIN32
-//TODO zconf alternative headers for windows systems
-#else
 
-#include <zconf.h>
-
-#endif
 
 #include <iostream>
-#include <utils.hpp>
 #include <algorithm>
+#ifdef WIN32
+#define HAVE_STRUCT_TIMESPEC
+#include "win/pthread.h"
+#include "win/dirent.h" //for number of cores
+#else
+#include <zconf.h>
+#endif
 
 #include "threading.hpp"
 
@@ -21,15 +21,12 @@ using std::cout;
 using std::endl;
 using std::for_each;
 
-//TODO get quality from command line and pass it to pthread
-#define QUALITY 3
-
 namespace cinemo {
 
     static void* threading::doWork(void* arg) {
         LameWrapper* lw = static_cast<LameWrapper*>(arg);
         lw->convertToMp3();
-        pthread_exit((void*) 0);
+        return static_cast<void*>(nullptr);
     }
 
     long threading::getCpuCoreCount() {
