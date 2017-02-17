@@ -22,9 +22,9 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <chrono>
 #include <iomanip>
+#include <algorithm>
 
 #include "utils.hpp"
-#include "args.hpp"
 #include "threading.hpp"
 
 using std::vector;
@@ -32,9 +32,6 @@ using std::string;
 using std::cout;
 using std::endl;
 using namespace cinemo;
-
-
-
 
 int main(int argc, char* argv[]) {
 
@@ -53,13 +50,30 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    cout << "There are " << lw.size()
+    //Filter out files which will not be converted due to errors
+    int lwSizeBeforeFilter = lw.size();
+    cout << "Checking for incompatible files...\n" << endl;
+    lw.erase(std::remove_if(begin(lw), end(lw),
+                            [&](const LameWrapper* file) {
+                                return checkAndPrintFileValidity(*file,
+                                                                 options);
+                            }), end(lw));
+
+    int removed = lwSizeBeforeFilter - lw.size();
+    if (removed > 0) {
+        cout << "\n" << removed << " Files removed from encoding queue due to"
+             << " incompatibility reasons!"
+             << endl;
+    }
+
+    cout << "\nThere are " << lw.size()
          << " wave files to be encoded to mp3.";
     cout << endl;
 
     //Time measurement
     auto startTime = std::chrono::system_clock::now();
 
+    //Do the work
     if (!options.noThread) {
         threading::doMultiThreadedConversion(lw, options);
     } else { //single thread mode for comparison with -n switch

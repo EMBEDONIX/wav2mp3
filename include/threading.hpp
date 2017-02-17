@@ -15,11 +15,19 @@ using std::vector;
 namespace cinemo {
     namespace threading {
 
-        bool checkAndPrintFileValidity(const LameWrapper& lw);
-
+        /**
+         * @brief Performs the encoding work with multiple threads
+         * @param lw vector of {@see LameWrapper} pointers
+         * @param options command line options {@see args::Options}
+         */
         void doMultiThreadedConversion(const vector<LameWrapper*>& lw,
                                        const args::Options& options);
 
+        /**
+         * @brief Performs the encoding work in single thread
+         * @param lw vector of {@see LameWrapper} pointers
+         * @param options command line options {@see args::Options}
+         */
         void doSingleThreadedConversion(const vector<LameWrapper*>& lw,
                                         const args::Options& options);
 

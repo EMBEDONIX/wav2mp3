@@ -39,6 +39,8 @@ namespace cinemo {
             bool help = false;
             bool verbose = false;
             bool noThread = false;
+            //TODO get quality from arguments as well!
+            int quality = 3;
         };
 
         /**

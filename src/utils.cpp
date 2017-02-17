@@ -27,11 +27,14 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <regex>
 
 //Platform specific includes
-
 #ifdef WIN32
 #include "win/dirent.h"
+#define PATH_SEPARATOR  "\\"
 #else
+#define PATH_SEPARATOR  "/"
+
 #include <dirent.h>
+
 #endif
 
 #ifdef _MSC_VER //for string compare ignore case, if on MSVC
@@ -45,7 +48,7 @@ namespace cinemo {
     /**
      * @brief Valid wave file extension
      */
-    const char* extWave = "wav";
+    static const char* extWave = "wav";
 
     bool isValidWorkDirectory(const string& dir) {
         struct stat st;
@@ -54,7 +57,7 @@ namespace cinemo {
     }
 
     bool getWorkingDirectoryFromExec(string& exec) {
-        exec = exec.substr(0, string(exec).find_last_of("\\/"));
+        exec = exec.substr(0, string(exec).find_last_of(PATH_SEPARATOR));
         return isValidWorkDirectory(exec);
     }
 
@@ -97,6 +100,24 @@ namespace cinemo {
         std::regex regex("^(.*)\\.wav$");
         //FIXME only works with GCC 4.9+ (e.g. not with 4.8)
         return std::regex_replace(in, regex, string("$1." + ext).c_str());
-        //return string(in + ".mp3");
+    }
+
+    //This function is here because it shouldnt  be called within a thread!
+    bool checkAndPrintFileValidity(const LameWrapper& lw,
+                                   const args::Options& options) {
+
+        if (!lw.isValidWaveFile()) {
+            std::cout << lw.getFileName()
+                      << " Appears to be invalid or corrupted.";
+            if (options.verbose) {
+                std::cout << " Flags = "
+                          << "Errors: " << lw.getHeader().ErrorFlags
+                          << ", Warnings: " << lw.getHeader().WarningFlags;
+            }
+            std::cout << std::endl;
+            return true;
+        }
+
+        return false;
     }
 }

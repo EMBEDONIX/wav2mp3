@@ -25,6 +25,7 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 #include "LameWrapper.hpp"
+#include "args.hpp"
 
 using std::string;
 using std::vector;
@@ -75,6 +76,15 @@ namespace cinemo {
      * @return a string with the original extension is changed
      */
     string changeExt(const string& in, const string& ext);
+
+    /**
+     * @brief Checks a {@link LameWrapper} object for errors and warnings.
+     *  It also writes on output stream!
+     * @param lw The LameWrapper object to be checked.
+     * @return true if no error, false if has errors
+     */
+    bool checkAndPrintFileValidity(const LameWrapper& lw,
+                                   const args::Options& options);
 }
 
 #endif //CINEMO_UTILS_HPP

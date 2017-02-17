@@ -45,8 +45,9 @@ namespace cinemo {
         const wh::WaveHeader* const wh;
         bool isBusy;
         bool isDone;
+        int quality = 3;
 
-        int getLameFlags(lame_t l, int quality);
+        int getLameFlags(lame_t l);
         bool encodeAlreadyMp3(const string& in, const string& out,
                               const lame_t& lame);
 
@@ -80,7 +81,7 @@ namespace cinemo {
          * @param quality The quality ratio. 0 = highest (default), 9 = lowest.
          * @return true on success, false on failure
          */
-        bool convertToMp3(int quality = 0);
+        bool convertToMp3();
 
         /**
          * @brief Returns the wave header object of the associated wave file to this instance.
@@ -95,7 +96,17 @@ namespace cinemo {
          *  to encode a WAV file into MP3.
          * @return true if valid, false if invalid
          */
-        bool isValidWaveFile() const { return !wh->ErrorFlags.any(); }
+        bool isValidWaveFile() const {
+                return !wh->ErrorFlags.any() && !wh->WarningFlags.any();
+        }
+
+        /**
+         * @brief Set the quality of encoding
+         * @param quality Quality index (0 = highest, 9 = lowest)
+         */
+        void setQuality(int quality);
+
+        int getuality() const { return quality; }
 
         string getDir() const { return dir; }
 

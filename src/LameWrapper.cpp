@@ -36,6 +36,7 @@ namespace cinemo {
     }
 
     LameWrapper::~LameWrapper() {
+        cout << getFileName() << " is being destructed!" << endl;
         delete wh;
     }
 
@@ -45,7 +46,7 @@ namespace cinemo {
         }
     }
 
-    int LameWrapper::getLameFlags(lame_t l, int quality) {
+    int LameWrapper::getLameFlags(lame_t l) {
         //get information from wave file
         int32_t sample_rate = wh->SampleRate;
         //int32_t byte_rate = wh->ByteRate;
@@ -83,16 +84,12 @@ namespace cinemo {
         return lame_init_params(l);
     }
 
-    bool LameWrapper::convertToMp3(int quality) {
+    bool LameWrapper::convertToMp3() {
 
         if (wh->ErrorFlags.any()) {
             cout << "This file does not appear to be a valid WAV file!" << endl;
         }
 
-        //check if given quality argument is valid
-        if (quality < 0 || quality > 9) {
-            quality = 0; //set to default
-        }
 
         //setup lame struct
         lame_t l;
@@ -100,7 +97,7 @@ namespace cinemo {
 
 
         //finalize lame params
-        if (getLameFlags(l, quality) < 0) {
+        if (getLameFlags(l) < 0) {
             cout << "Error in setting lame parameters!" << endl;
             return false;
         }
@@ -382,6 +379,15 @@ namespace cinemo {
         cout << "\tFile is already encoded as MP3, just change the extension!!"
              << endl;
         return false;
+    }
+
+    void LameWrapper::setQuality(int quality) {
+        //check if given quality argument is valid
+        if (quality < 0 || quality > 9) {
+            this->quality = 3; //set to default
+        } else {
+            this->quality = quality;
+        }
     }
 
 }
