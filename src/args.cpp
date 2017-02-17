@@ -82,7 +82,7 @@ namespace cinemo {
         if (isValidWorkDirectory(workDir)) {
             cout << "Looking for wave files in " << workDir << endl;
             if (!getWaveFiles(workDir, lw)) {
-                cout << "Can not find any WAV file in " << workDir << endl;
+                cout << "Can not find any WAV file(s) in " << workDir << endl;
             }
         } else {
             cout << workDir << " Is not a directory." << endl;

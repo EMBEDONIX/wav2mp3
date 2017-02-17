@@ -51,9 +51,12 @@ namespace cinemo {
     static const char* extWave = "wav";
 
     bool isValidWorkDirectory(const string& dir) {
+#ifdef WIN32
+        //TODO implement for windows
+#else
         struct stat st;
-        //TODO check for existence of WAV files right here...
         return stat(dir.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
+#endif
     }
 
     bool getWorkingDirectoryFromExec(string& exec) {
