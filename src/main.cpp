@@ -66,6 +66,12 @@ int main(int argc, char* argv[]) {
              << endl;
     }
 
+    //sort files by size "may help with performance ;)"
+    std::sort(begin(lw), end(lw),
+              [](const LameWrapper* w1, const LameWrapper* w2) {
+                  return w1->getHeader().FileSize > w2->getHeader().FileSize;
+              });
+
     cout << "\nThere are " << lw.size()
          << " wave files to be encoded to mp3.";
     cout << endl;

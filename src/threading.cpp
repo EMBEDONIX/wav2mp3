@@ -21,7 +21,9 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <algorithm>
 #ifdef WIN32
+#ifndef HAVE_STRUCT_TIMESPEC
 #define HAVE_STRUCT_TIMESPEC
+#endif
 #include "win/pthread.h"
 #include "win/dirent.h" //for number of cores
 #else
