@@ -32,7 +32,7 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "wave_header.hpp"
 
-#if WIN32copy assignment
+#if WIN32
 #include "win/lame.h"
 #else
 #include "lame/lame.h"
