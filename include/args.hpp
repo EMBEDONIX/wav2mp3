@@ -29,17 +29,23 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 using std::vector;
 
 namespace cinemo {
-    //TODO move to its own header/src
     /**
      * @brief Contains functions for parsing command line options
      */
     namespace args {
 
+        /**
+         * @brief Structure for command line options parsing
+         */
         struct Options {
+            /** -h was passed? then show help*/
             bool help = false;
+            /** -v was passed? then details should be printed when converting */
             bool verbose = false;
+            /** -n was passed? then run jobs on single (main) thread */
             bool noThread = false;
             //TODO get quality from arguments as well!
+            /** -q[0..9] was passed? then pass this as the quality factor to lame */
             int quality = 3;
         };
 
@@ -60,7 +66,7 @@ namespace cinemo {
         void printCopyrights();
 
         /**
-         * @brief
+         * @brief Prints the usage of the program (help)
          */
         void printUsage();
     }

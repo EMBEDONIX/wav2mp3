@@ -111,7 +111,7 @@ namespace cinemo {
          */
         void setQuality(int quality);
 
-        int getuality() const { return quality; }
+        int getQuality() const { return quality; }
 
         string getDir() const { return dir; }
 
@@ -126,7 +126,6 @@ namespace cinemo {
         void printWaveInfo() const;
 
         //Operator overloads
-
         //delete copy assignment operator
         LameWrapper& operator=(const LameWrapper&) = delete;
         LameWrapper(const LameWrapper&) = delete;

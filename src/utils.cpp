@@ -56,7 +56,6 @@ namespace cinemo {
     }
 
     bool getWorkingDirectoryFromExec(string& exec) {
-		std::cout << "getWorkingDirectoryFromExec => " << exec << std::endl;
 
 #ifdef WIN32
 		if (*exec.rbegin() != PATH_SEPARATOR) { 

@@ -90,20 +90,18 @@ int main(int argc, char* argv[]) {
             (std::chrono::system_clock::now() - startTime);
 
     //write encoding results
-    cout << "\nResults: " << endl;
     int success = 0, failure = 0;
-    for (auto& file : lw) { //could do with for_each and lambda...
-        if (file->isFinished()) {
+    for_each(begin(lw), end(lw), [&](const LameWrapper* lw) {
+        if (lw->isFinished())
             success++;
-        } else {
+        else
             failure++;
-        }
-    }
+    });
 
-    cout << "Converted " << success << " files and skipped "
+    cout << "\nConverted " << success << " files and skipped "
          << failure << "." << endl;
 
-    cout << "\nEncode time: "
+    cout << "\nTotal conversion time: "
          << std::fixed << std::setprecision(3) << elapsed.count() / 1000.0
          << " seconds." << endl;
 

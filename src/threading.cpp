@@ -21,7 +21,7 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <algorithm>
 #ifdef WIN32
-#ifndef HAVE_STRUCT_TIMESPEC
+#ifndef HAVE_STRUCT_TIMESPEC //fix for redefinition in time.h of windows SDK
 #define HAVE_STRUCT_TIMESPEC
 #endif
 #include "win/pthread.h"
@@ -68,7 +68,8 @@ namespace cinemo {
 				numThreads = lw.size();
 			}
 
-			JobParams* jp = divideWork(lw, numThreads);
+            //TODO use vector instead of new[]
+            WorkParams* jp = divideWork(lw, numThreads);
 			pthread_t* threads = new pthread_t[numThreads];
 			int* tCreateResults = new int[numThreads];
 			int* tJoinResults = new int[numThreads];
@@ -87,16 +88,19 @@ namespace cinemo {
 				tJoinResults[i] = pthread_join(threads[i], nullptr);
 			}
 
-			//TODO check the create and join results
 
-            delete[] threads, tCreateResults, tJoinResults;
+            for (int i = 0; i < numThreads; i++) {
+                if (options.verbose) {
+                    if (!tCreateResults[i] || tJoinResults[i]) {
+                        cout << "There was a problem with Thread #" << i
+                             << endl;
+                    }
+                }
 
-#ifdef WIN32
-#ifdef PTW32_STATIC_LIB
-			pthread_win32_thread_detach_np();
-			pthread_win32_process_detach_np();
-#endif
-#endif
+                jp[i].works.clear();
+            }
+
+            delete[] threads, tCreateResults, tJoinResults, jp;
         }
 
         void doSingleThreadedConversion(const vector<LameWrapper*>& lw,
@@ -113,43 +117,38 @@ namespace cinemo {
             }
         }
 
-		static JobParams* divideWork(const vector<LameWrapper*>& lw,
-			long numThreads) {
-			JobParams* jp = new JobParams[numThreads];
+        static WorkParams* divideWork(const vector<LameWrapper*>& lw,
+                                      long numThreads) {
+            WorkParams* wp = new WorkParams[numThreads];
 			int ja = 0; //Jobs Assigned
 
 			while (ja < lw.size()) {
 				for (int i = 0; i < numThreads && ja < lw.size(); ++i) {
-					jp[i].threadId = i;
-					jp[i].works.push_back(lw[ja++]);
+                    wp[i].threadId = i;
+                    wp[i].works.push_back(lw[ja++]);
 				}
 			}
 
-			for (int i = 0; i < numThreads; ++i) {
-				cout << "Jobs assigned to thread #" << i
-					<< " => " << jp[i].works.size() << endl;
-
-			}
-
-			return jp;
+            return wp;
 		}
 
 		static void* doWork(void* arg) {
-			JobParams* jp = static_cast<JobParams*>(arg);
-			for_each(begin(jp->works), end(jp->works),
+            WorkParams* wp = static_cast<WorkParams*>(arg);
+            for_each(begin(wp->works), end(wp->works),
 				[&](LameWrapper* lw) {
 				
 				//print some information if verbose option is true
-				if(jp->options.verbose)	{
+                    if (wp->options.verbose) {
 					pthread_mutex_lock(&mutex); //syncs outstream!
-					cout << "\nThread #" << jp->threadId
-						<< " => " << lw->getFileName() << endl;
+                        cout << "\nThread #" << wp->threadId
+                             << " => " << lw->getFileName() << endl;
 					lw->printWaveInfo();
 					pthread_mutex_unlock(&mutex);
 				}
 
 				lw->convertToMp3();
-			});
+
+                });
 
 			return static_cast<void*>(nullptr);
 		}
