@@ -73,8 +73,9 @@ namespace cinemo {
 
     public:
 
-        static const int WAV_BUFF_SIZE = 1024 * 100 * 2;
-        static const int MP3_BUFF_SIZE = 1024 * 100 * 2;
+		//TODO this buffer sizes work OK, but maybe its better to do as formula in lame header
+        static const int WAV_BUFF_SIZE = 1024 * 100;
+        static const int MP3_BUFF_SIZE = 1024 * 100;
 
         //FIXME parameters are ambiguous....just use full path instead
         LameWrapper(const string &dir, const string &file);

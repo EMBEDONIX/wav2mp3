@@ -24,7 +24,7 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <sys/stat.h>
 #include <iostream>
-#include <regex>
+//#include <regex>
 
 //Platform specific includes
 #ifdef WIN32
@@ -99,10 +99,16 @@ namespace cinemo {
     }
 
     string changeExt(const string& in, const string& ext) {
-        //FIXME currently wav is hardcoded
-        std::regex regex("^(.*)\\.wav$");
-        //FIXME only works with GCC 4.9+ (e.g. not with 4.8) and MSVC 12+
-        return std::regex_replace(in, regex, string("$1." + ext).c_str());
+
+		//by reaching here...file must have .wav at the end (ignore case)
+		//this is handled while looking for files so no need to check again!
+		//FIXME What would happen in case of unix hidden file ".wav" ???!!!!
+		return in.substr(0, in.rfind('.') + 1) + ext;
+
+//        //FIXME currently wav is hardcoded
+//        std::regex regex("^(.*)\\.wav$");
+//        //FIXME only works with GCC 4.9+ (e.g. not with 4.8) and MSVC 12+
+//        return std::regex_replace(in, regex, string("$1." + ext).c_str());
     }
 
     //This function is here because it shouldnt  be called within a thread!
