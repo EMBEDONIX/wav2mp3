@@ -25,7 +25,7 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include "LameWrapper.hpp"
 #include "args.hpp"
 
-#define JOBS_PER_CORE	2
+#define THREADS_PER_CORE    2
 
 using std::vector;
 

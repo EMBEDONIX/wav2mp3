@@ -34,6 +34,7 @@ set(SOURCE_FILES
 add_executable(wav2mp3 ${SOURCE_FILES})
 
 #Finding lame library
+set(LIBS_DIR_x86_RELESAE ./lib/Release/x86)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}}/cmake)
 include(./cmake/Findmp3lame.cmake)
 if (WIN32)
@@ -46,7 +47,14 @@ endif ()
 if (MP3LAME_FOUND)
     set(EXTRA_LIBRARIES ${EXTRA_LIBRARIES} ${MP3LAME_LIBRARY})
     message(STATUS "MP3LAME Library was found in " ${MP3LAME_LIBRARY})
-    target_link_libraries(wav2mp3 pthread mp3lame)
+    if (WIN32)
+        target_link_libraries(wav2mp3
+                ${LIBS_DIR_x86_RELESAE}/libmp3lame-static
+                ${LIBS_DIR_x86_RELESAE}/libmpghip-static
+                ${LIBS_DIR_x86_RELESAE}/pthreadVC2)
+    else ()
+        target_link_libraries(wav2mp3 pthread mp3lame)
+    endif ()
 elseif (!MP3LAM_FOUND)
     message(ERROR "mp3lame library is necessary!")
 endif (MP3LAME_FOUND)

@@ -53,17 +53,17 @@ namespace cinemo {
 #else
             numCores = sysconf(_SC_NPROCESSORS_ONLN);
 #endif
-            if (numCores > 0) {
-                return numCores; //2 threads per core
+            if (numCores > 0) { //check if num of cores could be detected
+                return numCores;
             }
 
-            return 4; //rule of thumb! assume 4 core processor if cant determine
+            return 4; //rule of thumb! assume quad core processor
         }
 
         void doMultiThreadedConversion(const vector<LameWrapper*>& lw,
                                        const args::Options& options) {
 
-            long numThreads = getCpuCoreCount() * JOBS_PER_CORE;
+            long numThreads = getCpuCoreCount() * THREADS_PER_CORE;
 			if(lw.size() < numThreads)	{
 				numThreads = lw.size();
 			}
@@ -92,14 +92,16 @@ namespace cinemo {
             delete[] threads, tCreateResults, tJoinResults;
         }
 
-        void doSingleThreadedConversion(
-                const vector<LameWrapper*>& lw, const args::Options& options) {
+        void doSingleThreadedConversion(const vector<LameWrapper*>& lw,
+                                        const args::Options& options) {
+            cout << "\nConversion is in progress..." << endl;
+
             for (auto& work : lw) {
                 if (options.verbose) {
+                    cout << "Thread 0:" << " => " << work->getFileName()
+                         << endl;
                     work->printWaveInfo();
                 }
-
-                cout << "Thread 0:" << " => " << work->getFileName() << endl;
                 work->convertToMp3();
             }
         }

@@ -31,7 +31,8 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "wave_header.hpp"
-#if WIN32
+
+#if WIN32copy assignment
 #include "win/lame.h"
 #else
 #include "lame/lame.h"
@@ -72,8 +73,8 @@ namespace cinemo {
 
     public:
 
-        static const int WAV_BUFF_SIZE = 1024 * 100;
-        static const int MP3_BUFF_SIZE = 1024 * 100;
+        static const int WAV_BUFF_SIZE = 1024 * 100 * 2;
+        static const int MP3_BUFF_SIZE = 1024 * 100 * 2;
 
         //FIXME parameters are ambiguous....just use full path instead
         LameWrapper(const string &dir, const string &file);
@@ -101,7 +102,7 @@ namespace cinemo {
          * @return true if valid, false if invalid
          */
         bool isValidWaveFile() const {
-                return !wh->ErrorFlags.any() && !wh->WarningFlags.any();
+            return !wh->ErrorFlags.any() /*&& !wh->WarningFlags.any()*/;
         }
 
         /**
@@ -130,7 +131,6 @@ namespace cinemo {
         LameWrapper& operator=(const LameWrapper&) = delete;
         LameWrapper(const LameWrapper&) = delete;
         LameWrapper() = default;
-
     };
 }
 
