@@ -35,7 +35,9 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #if WIN32
 #include "win/lame.h"
 #else
+
 #include "lame/lame.h"
+
 #endif
 
 using std::string;
@@ -53,6 +55,7 @@ namespace cinemo {
         int quality = 3;
 
         int getLameFlags(lame_t l) const;
+
         bool encodeAlreadyMp3(const string& in, const string& out,
                               const lame_t& lame);
 
@@ -61,24 +64,27 @@ namespace cinemo {
         // encodeChannels_BlockAlign_BitDepthPerSample
         // e.g. stereo, 4byte, 16 bit = encodeStereo_4_16(...)
 
-        bool encodeMono_1_8 (const string& in, const string& out,
-                        const lame_t& lame);
-        bool encodeMono_2_16(const string& in, const string& out,
+        bool encodeMono_1_8(const string& in, const string& out,
                             const lame_t& lame);
+
+        bool encodeMono_2_16(const string& in, const string& out,
+                             const lame_t& lame);
+
         bool encodeStereo_2_8(const string& in, const string& out,
-                        const lame_t& lame);
+                              const lame_t& lame);
+
         bool encodeStereo_4_16(const string& in, const string& out,
-                          const lame_t& lame);
+                               const lame_t& lame);
         /************** ENCODE FUNCTIONS END *************/
 
     public:
 
-		//TODO this buffer sizes work OK, but maybe its better to do as formula in lame header
+        //TODO this buffer sizes work OK, but maybe its better to do as formula in lame header
         static const int WAV_BUFF_SIZE = 1024 * 100;
         static const int MP3_BUFF_SIZE = 1024 * 100;
 
         //FIXME parameters are ambiguous....just use full path instead
-        LameWrapper(const string &dir, const string &file);
+        LameWrapper(const string& dir, const string& file);
 
         ~LameWrapper();
 
@@ -93,7 +99,7 @@ namespace cinemo {
          * @brief Returns the wave header object of the associated wave file to this instance.
          * @return wh WaveHeader object parsed from wav file
          */
-        wh::WaveHeader getHeader() const {return *wh;}
+        wh::WaveHeader getHeader() const { return *wh; }
 
         /**
          * @brief Check if the wave header was parsed and is valid.
@@ -129,7 +135,9 @@ namespace cinemo {
         //Operator overloads
         //delete copy assignment operator
         LameWrapper& operator=(const LameWrapper&) = delete;
+
         LameWrapper(const LameWrapper&) = delete;
+
         LameWrapper() = default;
     };
 }

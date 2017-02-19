@@ -60,7 +60,7 @@
 
 #define PTW32_SCHED_LEVEL_MAX 3
 
-#if ( defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112 )  || !defined(PTW32_SCHED_LEVEL)
+#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112) || !defined(PTW32_SCHED_LEVEL)
 #define PTW32_SCHED_LEVEL PTW32_SCHED_LEVEL_MAX
 /* Include everything */
 #endif
@@ -112,7 +112,9 @@
 #if defined(NEED_ERRNO)
 #include "need_errno.h"
 #else
+
 #include <errno.h>
+
 #endif
 #endif /* PTW32_SCHED_LEVEL >= PTW32_SCHED_LEVEL_MAX */
 
@@ -126,21 +128,21 @@
    typedef int pid_t;
 # endif
 #else
- typedef int pid_t;
+typedef int pid_t;
 #endif
 
 /* Thread scheduling policies */
 
 enum {
-  SCHED_OTHER = 0,
-  SCHED_FIFO,
-  SCHED_RR,
-  SCHED_MIN   = SCHED_OTHER,
-  SCHED_MAX   = SCHED_RR
+    SCHED_OTHER = 0,
+    SCHED_FIFO,
+    SCHED_RR,
+    SCHED_MIN = SCHED_OTHER,
+    SCHED_MAX = SCHED_RR
 };
 
 struct sched_param {
-  int sched_priority;
+    int sched_priority;
 };
 
 #if defined(__cplusplus)
@@ -148,15 +150,15 @@ extern "C"
 {
 #endif                          /* __cplusplus */
 
-PTW32_DLLPORT int __cdecl sched_yield (void);
+PTW32_DLLPORT int __cdecl sched_yield(void);
 
-PTW32_DLLPORT int __cdecl sched_get_priority_min (int policy);
+PTW32_DLLPORT int __cdecl sched_get_priority_min(int policy);
 
-PTW32_DLLPORT int __cdecl sched_get_priority_max (int policy);
+PTW32_DLLPORT int __cdecl sched_get_priority_max(int policy);
 
-PTW32_DLLPORT int __cdecl sched_setscheduler (pid_t pid, int policy);
+PTW32_DLLPORT int __cdecl sched_setscheduler(pid_t pid, int policy);
 
-PTW32_DLLPORT int __cdecl sched_getscheduler (pid_t pid);
+PTW32_DLLPORT int __cdecl sched_getscheduler(pid_t pid);
 
 /*
  * Note that this macro returns ENOTSUP rather than

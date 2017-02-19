@@ -37,12 +37,12 @@ namespace cinemo {
          */
         struct WorkParams {
             /** ID of the thread assigned to process this jobs */
-			int threadId;
+            int threadId;
             /** Copy of command line options parsed at the start of program */
             args::Options options; //will be a copy!
             /** Vector of LameWrapper pointers to be processed by this thread */
             vector<LameWrapper*> works;
-		};
+        };
 
         /**
          * @brief Performs the encoding work with multiple threads

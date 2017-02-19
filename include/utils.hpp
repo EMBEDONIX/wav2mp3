@@ -49,14 +49,14 @@ namespace cinemo {
      * @param dir The path to check.
      * @return true on success, false on failure.
      */
-    bool isValidWorkDirectory(const string &dir);
+    bool isValidWorkDirectory(const string& dir);
 
     /**
      * @brief Checks if a given directory contains valid 'wave' files.
      * @param dir The path to check.
      * @return true on success, false on failure.
      */
-    bool containsValidWaveFiles(const string &dir);
+    bool containsValidWaveFiles(const string& dir);
 
     /**
      * @brief Check if a file has correct extension
@@ -64,7 +64,7 @@ namespace cinemo {
      * @param ext the extension to check
      * @return true on success, false on failure
      */
-    bool isValidFileType(const string &file, const char *ext);
+    bool isValidFileType(const string& file, const char* ext);
 
     /**
      * @brief Get all valid wave files from a directory

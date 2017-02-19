@@ -47,22 +47,22 @@ namespace cinemo {
         if (argc == 1) {
 
 #ifdef WIN32
-			//If no arguments given, this code finds the current exe directory
-			//FIXME this assumes system is not UNICODE
-			HMODULE hModule = GetModuleHandleW(nullptr);
-			WCHAR buffer[MAX_PATH];
-			GetModuleFileNameW(hModule, buffer, MAX_PATH);
-			char path[MAX_PATH * 2];
-			std::wcstombs(path, buffer, MAX_PATH * 2);
-			string exePath(path);
-			int rIndex = exePath.find_last_of(PATH_SEPARATOR);
-			if(rIndex == 0 || rIndex == string::npos) {
-				cout << "Can not determine the current executable directory,"
-					<< " please pass the directory as an argument."
-					<< " Use -h for more information.";
-				return 1;
-			}
-			workDir = exePath.substr(0, rIndex);
+            //If no arguments given, this code finds the current exe directory
+            //FIXME this assumes system is not UNICODE
+            HMODULE hModule = GetModuleHandleW(nullptr);
+            WCHAR buffer[MAX_PATH];
+            GetModuleFileNameW(hModule, buffer, MAX_PATH);
+            char path[MAX_PATH * 2];
+            std::wcstombs(path, buffer, MAX_PATH * 2);
+            string exePath(path);
+            int rIndex = exePath.find_last_of(PATH_SEPARATOR);
+            if(rIndex == 0 || rIndex == string::npos) {
+                cout << "Can not determine the current executable directory,"
+                    << " please pass the directory as an argument."
+                    << " Use -h for more information.";
+                return 1;
+            }
+            workDir = exePath.substr(0, rIndex);
 #endif
             getWorkingDirectoryFromExec(workDir);
         } else if (argc == 2 || argc == 3) {

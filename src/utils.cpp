@@ -30,7 +30,10 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef WIN32
 #include "win/dirent.h"
 #else
+
 #include <dirent.h>
+#include <strings.h>
+
 #endif
 
 #ifdef _MSC_VER //for string compare ignore case, if on MSVC
@@ -51,18 +54,18 @@ namespace cinemo {
 #ifdef WIN32
         return stat(dir.c_str(), &st) == 0 && S_IFDIR /*S_ISDIR(st.st_mode)*/;
 #else
-		return stat(dir.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
+        return stat(dir.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
 #endif
     }
 
     bool getWorkingDirectoryFromExec(string& exec) {
 
 #ifdef WIN32
-		if (*exec.rbegin() != PATH_SEPARATOR) { 
-			exec = exec.append(1, PATH_SEPARATOR);
-		}
+        if (*exec.rbegin() != PATH_SEPARATOR) {
+            exec = exec.append(1, PATH_SEPARATOR);
+        }
 #else
-		exec = exec.substr(0, string(exec).find_last_of(PATH_SEPARATOR));
+        exec = exec.substr(0, string(exec).find_last_of(PATH_SEPARATOR));
 #endif
 
         return isValidWorkDirectory(exec);
@@ -84,26 +87,26 @@ namespace cinemo {
         return workFiles.size() > 0;
     }
 
-    bool isValidFileType(const string& file, const char* ext) {        
-		string fileExt;
+    bool isValidFileType(const string& file, const char* ext) {
+        string fileExt;
         string::size_type i;
-        
-		i = file.rfind('.');
-		
-		if (i != string::npos) {
-			fileExt = file.substr(i + 1);
-			return !strcasecmp(fileExt.c_str(), ext);
-		}
 
-		return false;
+        i = file.rfind('.');
+
+        if (i != string::npos) {
+            fileExt = file.substr(i + 1);
+            return !strcasecmp(fileExt.c_str(), ext);
+        }
+
+        return false;
     }
 
     string changeExt(const string& in, const string& ext) {
 
-		//by reaching here...file must have .wav at the end (ignore case)
-		//this is handled while looking for files so no need to check again!
-		//FIXME What would happen in case of unix hidden file ".wav" ???!!!!
-		return in.substr(0, in.rfind('.') + 1) + ext;
+        //by reaching here...file must have .wav at the end (ignore case)
+        //this is handled while looking for files so no need to check again!
+        //FIXME What would happen in case of unix hidden file ".wav" ???!!!!
+        return in.substr(0, in.rfind('.') + 1) + ext;
 
 //        //FIXME currently wav is hardcoded
 //        std::regex regex("^(.*)\\.wav$");

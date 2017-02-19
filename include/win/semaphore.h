@@ -65,7 +65,7 @@
 /* Include everything */
 #endif
 
-#if defined(__GNUC__) && ! defined (__declspec)
+#if defined(__GNUC__) && !defined (__declspec)
 # error Please upgrade your GNU compiler to one that supports __declspec.
 #endif
 
@@ -111,7 +111,9 @@
 #if defined(NEED_ERRNO)
 #include "need_errno.h"
 #else
+
 #include <errno.h>
+
 #endif
 #endif /* PTW32_SEMAPHORE_LEVEL >= PTW32_SEMAPHORE_LEVEL_MAX */
 
@@ -127,40 +129,40 @@ typedef unsigned int mode_t;
 #endif
 
 
-typedef struct sem_t_ * sem_t;
+typedef struct sem_t_* sem_t;
 
-PTW32_DLLPORT int __cdecl sem_init (sem_t * sem,
-			    int pshared,
-			    unsigned int value);
+PTW32_DLLPORT int __cdecl sem_init(sem_t* sem,
+                                   int pshared,
+                                   unsigned int value);
 
-PTW32_DLLPORT int __cdecl sem_destroy (sem_t * sem);
+PTW32_DLLPORT int __cdecl sem_destroy(sem_t* sem);
 
-PTW32_DLLPORT int __cdecl sem_trywait (sem_t * sem);
+PTW32_DLLPORT int __cdecl sem_trywait(sem_t* sem);
 
-PTW32_DLLPORT int __cdecl sem_wait (sem_t * sem);
+PTW32_DLLPORT int __cdecl sem_wait(sem_t* sem);
 
-PTW32_DLLPORT int __cdecl sem_timedwait (sem_t * sem,
-				 const struct timespec * abstime);
+PTW32_DLLPORT int __cdecl sem_timedwait(sem_t* sem,
+                                        const struct timespec* abstime);
 
-PTW32_DLLPORT int __cdecl sem_post (sem_t * sem);
+PTW32_DLLPORT int __cdecl sem_post(sem_t* sem);
 
-PTW32_DLLPORT int __cdecl sem_post_multiple (sem_t * sem,
-				     int count);
+PTW32_DLLPORT int __cdecl sem_post_multiple(sem_t* sem,
+                                            int count);
 
-PTW32_DLLPORT int __cdecl sem_open (const char * name,
-			    int oflag,
-			    mode_t mode,
-			    unsigned int value);
+PTW32_DLLPORT int __cdecl sem_open(const char* name,
+                                   int oflag,
+                                   mode_t mode,
+                                   unsigned int value);
 
-PTW32_DLLPORT int __cdecl sem_close (sem_t * sem);
+PTW32_DLLPORT int __cdecl sem_close(sem_t* sem);
 
-PTW32_DLLPORT int __cdecl sem_unlink (const char * name);
+PTW32_DLLPORT int __cdecl sem_unlink(const char* name);
 
-PTW32_DLLPORT int __cdecl sem_getvalue (sem_t * sem,
-				int * sval);
+PTW32_DLLPORT int __cdecl sem_getvalue(sem_t* sem,
+                                       int* sval);
 
 #if defined(__cplusplus)
-}				/* End of extern "C" */
+}                /* End of extern "C" */
 #endif				/* __cplusplus */
 
 #undef PTW32_SEMAPHORE_LEVEL

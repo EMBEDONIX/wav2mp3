@@ -91,8 +91,8 @@ int main(int argc, char* argv[]) {
 
     //write encoding results
     int success = 0, failure = 0;
-    for_each(begin(lw), end(lw), [&](const LameWrapper* lw) {
-        if (lw->isFinished())
+    for_each(begin(lw), end(lw), [&](const LameWrapper* item) {
+        if (item->isFinished())
             success++;
         else
             failure++;

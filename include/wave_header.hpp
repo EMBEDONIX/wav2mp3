@@ -61,161 +61,163 @@ using std::string;
 typedef std::pair<bool, int> header_pos;
 
 namespace cinemo {
-namespace wh {
-    /**
-     * @brief Flags for any warnings during parsing of the wave file's RIFF header
-     */
-    enum WaveParseWarnings {
-        /** No warnings during header parsing */
-                WARNING_SizeMismatch = 0,
-        /** Happens if extension size is not 22 or data is not immediately followed by fmt */
-                WARNING_NoneStandardExtension = 1
-    };
-
-    /**
-     * @brief Flags for any errors during parsing of the wave file's RIFF header
-     */
-    enum WaveErrorFlags {
-        /** Error if can not open and seek through the file */
-                ERROR_FileIo = 0,
-        /** Wave file should be at least 32 byte */
-                ERROR_FileTooSmall = 1,
-        /** RIFF chunk header does not exist */
-                ERROR_NoRiffChunk = 2,
-        /** WAVE chunk header does not exist */
-                ERROR_NoWaveChunk = 3,
-        /** fmt chunk header does not exist */
-                ERROR_NoFmtChunk = 4,
-        /** Data chunk header does not exist */
-                ERROR_NoDataChunk = 5
-    };
-
-    /**
-     * @brief Compression method of a wave file
-     * As far as I know, must formats are obsolete, but they can be find in
-     * MMREG.H which is provided by microsoft MSVC compiler.
-     *
-     * NOTE: This enumeration is incomplete. Further formats can be also found
-     * in {@link http://jhove.sourceforge.net/wave-hul.html}
-     */
-    enum WaveAudioType {
-        WAT_INVALID = 0,
-        WAT_RAW_PCM = 1,
-        WAT_IEEE_FP = 3,
-        WAT_MULAW = 6,
-        WAT_ALAW = 7,
-        WAT_IMAADPCM = 17,
-        WAT_YAMAHA_ADPCM = 22,
-        WAT_GSM610 = 49,
-        WAT_ITUG_ADPCM = 64,
-        WAT_MPEG = 80,
-        WAT_MPEG_3 = 85,
-        WAT_IBM_MULAW = 257,
-        WAT_IBM_ALAW = 258,
-        WAT_ADPCM = 259,
-        /** Must be an extension */
-        WAT_EXTENSION = 65534,
-        WAT_EXPIRIMENTAL = 65535
-    };
-
-    //FIXME convert to a nicely aligned C struct (e.g. for embedded systems)
-    /**
-     * @brief Minimalistic representation of a wave file header.
-     */
-    struct WaveHeader {
-        /** Path to the file */
-        string File;
-        /** Wave ID */
-        string WaveId;
-        /** If file contains "fact" chunk */
-        bool HasFact = false;
-        /** Possible problems and warnings during parsing the wave file */
-        std::bitset<8> WarningFlags = 0;
-        /** Flags for errors during parsing if it is not 0, file is invalid */
-        std::bitset<8> ErrorFlags = 0;
-        /** Total size of the file in bytes (including header and data) */
-        uint32_t FileSize = 0;
-        /** Size of file in bytes, 8 bytes less than actual file size */
-        uint32_t RiffSize = 0;
-        /** FMT Chunk Size */
-        uint32_t FormatSize = 0;
-        /** Audio Type (compression method) */
-        uint16_t FormatAudioType = 0;
-        /** Number of channels (1 = mono, 2 = stereo, etc.) */
-        uint16_t NumberOfChannels = 0;
-        /** Sample rate of the audio */
-        uint32_t SampleRate = 0;
-        /** Byte rate of the audio */
-        uint32_t ByteRate = 0;
-        /** Block align */
-        uint16_t BlockAlign = 0;
-        /** Bits per sample or bit depth */
-        uint16_t BitsPerSample = 0;
-        /** Size of the extension (0 or 22, other possibilities might exist!) */
-        uint16_t ExtensionSize = 0;
-        uint16_t ValidBitsPerSample = 0;
-        /** Bit fields indicating the speakers to use (e.g. left, rear, top, etc.) */
-        uint32_t ChannelMask = 0;
-        /** GUID, including the data format code */
-        uint8_t SubFormat[16] = {0};
-        /** Number of bytes to be parsed in "fact" section */
-        uint32_t FactSize = 0;
-        /** Number of samples (per channel) */
-        uint32_t FactSampleLength = 0;
-        /** The position where actual sound data begins */
-        uint32_t DataBegin = 0;
-        /** Size of bytes that contain actual audio content */
-        uint32_t DataSize = 0;
-
-        //Extra, possibly harmless headers
-        bool hasList = false;
-        uint32_t ListSize = 0;
-
-
-        //FUNCTIONS
+    namespace wh {
         /**
-         * @brief Check if the file is in extended format
-         * @return true if is extended, false if its standard PCM
+         * @brief Flags for any warnings during parsing of the wave file's RIFF header
          */
-        bool isExtendedFormat() const {return ExtensionSize > 0;};
+        enum WaveParseWarnings {
+            /** No warnings during header parsing */
+                    WARNING_SizeMismatch = 0,
+            /** Happens if extension size is not 22 or data is not immediately followed by fmt */
+                    WARNING_NoneStandardExtension = 1
+        };
+
         /**
-         * @brief Check if the last byte of the file is not important.
-         *  Note: If number of data bytes is odd, then one byte at the end
-         *  of the file is the pad byte.
-         * @return true if has, false if has not!
+         * @brief Flags for any errors during parsing of the wave file's RIFF header
          */
-        bool hasPadByte() const { return  (DataSize % 2 != 0);}
-    };
-    /**
-     * @brief Tries to parse header out of (an assumed) wave file.
-     * The result will contain must important information in regards to using them
-     * for converting the wave file to mp3 format.
-     * @param file Path to the file
-     * @return A populated {@link WaveHeader} pointer. nullptr if something goes wrong.
-     */
-    WaveHeader* parseWaveHeader(const string& file);
+        enum WaveErrorFlags {
+            /** Error if can not open and seek through the file */
+                    ERROR_FileIo = 0,
+            /** Wave file should be at least 32 byte */
+                    ERROR_FileTooSmall = 1,
+            /** RIFF chunk header does not exist */
+                    ERROR_NoRiffChunk = 2,
+            /** WAVE chunk header does not exist */
+                    ERROR_NoWaveChunk = 3,
+            /** fmt chunk header does not exist */
+                    ERROR_NoFmtChunk = 4,
+            /** Data chunk header does not exist */
+                    ERROR_NoDataChunk = 5
+        };
 
-    void getFmtFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                              header_pos dp);
+        /**
+         * @brief Compression method of a wave file
+         * As far as I know, must formats are obsolete, but they can be find in
+         * MMREG.H which is provided by microsoft MSVC compiler.
+         *
+         * NOTE: This enumeration is incomplete. Further formats can be also found
+         * in {@link http://jhove.sourceforge.net/wave-hul.html}
+         */
+        enum WaveAudioType {
+            WAT_INVALID = 0,
+            WAT_RAW_PCM = 1,
+            WAT_IEEE_FP = 3,
+            WAT_MULAW = 6,
+            WAT_ALAW = 7,
+            WAT_IMAADPCM = 17,
+            WAT_YAMAHA_ADPCM = 22,
+            WAT_GSM610 = 49,
+            WAT_ITUG_ADPCM = 64,
+            WAT_MPEG = 80,
+            WAT_MPEG_3 = 85,
+            WAT_IBM_MULAW = 257,
+            WAT_IBM_ALAW = 258,
+            WAT_ADPCM = 259,
+            /** Must be an extension */
+                    WAT_EXTENSION = 65534,
+            WAT_EXPIRIMENTAL = 65535
+        };
 
-    void getFactFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                               header_pos dp);
+        //FIXME convert to a nicely aligned C struct (e.g. for embedded systems)
+        /**
+         * @brief Minimalistic representation of a wave file header.
+         */
+        struct WaveHeader {
+            /** Path to the file */
+            string File;
+            /** Wave ID */
+            string WaveId;
+            /** If file contains "fact" chunk */
+            bool HasFact = false;
+            /** Possible problems and warnings during parsing the wave file */
+            std::bitset<8> WarningFlags = 0;
+            /** Flags for errors during parsing if it is not 0, file is invalid */
+            std::bitset<8> ErrorFlags = 0;
+            /** Total size of the file in bytes (including header and data) */
+            uint32_t FileSize = 0;
+            /** Size of file in bytes, 8 bytes less than actual file size */
+            uint32_t RiffSize = 0;
+            /** FMT Chunk Size */
+            uint32_t FormatSize = 0;
+            /** Audio Type (compression method) */
+            uint16_t FormatAudioType = 0;
+            /** Number of channels (1 = mono, 2 = stereo, etc.) */
+            uint16_t NumberOfChannels = 0;
+            /** Sample rate of the audio */
+            uint32_t SampleRate = 0;
+            /** Byte rate of the audio */
+            uint32_t ByteRate = 0;
+            /** Block align */
+            uint16_t BlockAlign = 0;
+            /** Bits per sample or bit depth */
+            uint16_t BitsPerSample = 0;
+            /** Size of the extension (0 or 22, other possibilities might exist!) */
+            uint16_t ExtensionSize = 0;
+            uint16_t ValidBitsPerSample = 0;
+            /** Bit fields indicating the speakers to use (e.g. left, rear, top, etc.) */
+            uint32_t ChannelMask = 0;
+            /** GUID, including the data format code */
+            uint8_t SubFormat[16] = {0};
+            /** Number of bytes to be parsed in "fact" section */
+            uint32_t FactSize = 0;
+            /** Number of samples (per channel) */
+            uint32_t FactSampleLength = 0;
+            /** The position where actual sound data begins */
+            uint32_t DataBegin = 0;
+            /** Size of bytes that contain actual audio content */
+            uint32_t DataSize = 0;
 
-    void getDataFromFileHandle(WaveHeader* wh, std::ifstream& file,
-                               header_pos dp);
+            //Extra, possibly harmless headers
+            bool hasList = false;
+            uint32_t ListSize = 0;
 
-    void getListInfoFromFileHandle(WaveHeader* wh, std::ifstream& file,
+
+            //FUNCTIONS
+            /**
+             * @brief Check if the file is in extended format
+             * @return true if is extended, false if its standard PCM
+             */
+            bool isExtendedFormat() const { return ExtensionSize > 0; };
+
+            /**
+             * @brief Check if the last byte of the file is not important.
+             *  Note: If number of data bytes is odd, then one byte at the end
+             *  of the file is the pad byte.
+             * @return true if has, false if has not!
+             */
+            bool hasPadByte() const { return (DataSize % 2 != 0); }
+        };
+
+        /**
+         * @brief Tries to parse header out of (an assumed) wave file.
+         * The result will contain must important information in regards to using them
+         * for converting the wave file to mp3 format.
+         * @param file Path to the file
+         * @return A populated {@link WaveHeader} pointer. nullptr if something goes wrong.
+         */
+        WaveHeader* parseWaveHeader(const string& file);
+
+        void getFmtFromFileHandle(WaveHeader* wh, std::ifstream& file,
+                                  header_pos dp);
+
+        void getFactFromFileHandle(WaveHeader* wh, std::ifstream& file,
                                    header_pos dp);
 
-    void printWaveHeader(const WaveHeader& wh);
+        void getDataFromFileHandle(WaveHeader* wh, std::ifstream& file,
+                                   header_pos dp);
 
-    uint32_t convert4CharTo16_BigEndian(char* const buff);
+        void getListInfoFromFileHandle(WaveHeader* wh, std::ifstream& file,
+                                       header_pos dp);
 
-    header_pos searchForHeader(char* buff, size_t size, const string& s);
+        void printWaveHeader(const WaveHeader& wh);
 
-    void printFlags();
+        uint32_t convert4CharTo16_BigEndian(char* const buff);
 
-}
+        header_pos searchForHeader(char* buff, size_t size, const string& s);
+
+        void printFlags();
+
+    }
 }
 
 

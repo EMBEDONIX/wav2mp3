@@ -31,7 +31,8 @@ using std::endl;
 namespace cinemo {
 
     LameWrapper::LameWrapper(const string& dir, const string& file)
-            : dir(dir), file(file), path(dir + "/" + file), wh(wh::parseWaveHeader(path)),
+            : dir(dir), file(file), path(dir + "/" + file),
+              wh(wh::parseWaveHeader(path)),
               isBusy(false), isDone(false) {
     }
 
@@ -40,7 +41,7 @@ namespace cinemo {
         delete wh;
     }
 
-    void LameWrapper::printWaveInfo() const{
+    void LameWrapper::printWaveInfo() const {
         if (wh != nullptr) {
             wh::printWaveHeader(getHeader());
         }
@@ -216,7 +217,8 @@ namespace cinemo {
             } else { //encoding
 
                 for (int i = 0; i < read; i++) {
-                    wav_buff_converted[i] = static_cast<short>(wav_buff[i] - 0x80) << 8;
+                    wav_buff_converted[i] =
+                            static_cast<short>(wav_buff[i] - 0x80) << 8;
                 }
 
                 write = lame_encode_buffer(lame,
@@ -261,7 +263,8 @@ namespace cinemo {
                                           MP3_BUFF_SIZE);
             } else { //encoding
                 write = lame_encode_buffer(lame, &wav_buff[0], nullptr,
-                                           static_cast<const int>(read / 2), mp3_buff,
+                                           static_cast<const int>(read / 2),
+                                           mp3_buff,
                                            MP3_BUFF_SIZE);
             }
             mp3.write(reinterpret_cast<char*>(&mp3_buff), write);
@@ -309,7 +312,8 @@ namespace cinemo {
                 write = lame_encode_buffer(lame,
                                            reinterpret_cast<short int*>(&wav_buff_l[0]),
                                            reinterpret_cast<short int*>(&wav_buff_r[0]),
-                                           static_cast<const int>(read) / 2, mp3_buff,
+                                           static_cast<const int>(read) / 2,
+                                           mp3_buff,
                                            MP3_BUFF_SIZE);
             }
 

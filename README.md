@@ -17,7 +17,7 @@ This is an experimental project for a command line tool to convert <b>wave</b> f
 <ul>
 <li>GNU/Linux systems</li>
     <ul>
-        <li>GCC 4.9 or higher.</li>
+        <li>GCC 4.7 or higher.</li>
         <li>Run CMake then make the resulting Makefile. Or, import the project with any ide that supports CMake (e.g. CLion) or after running CMake (gui or cli)
         import the project with IDE's supporting Makefile (e.g. Eclipse).</li>
         <li>Make sure your system has <b>libmp3lame-dev</b> installed.</li> 
@@ -25,7 +25,7 @@ This is an experimental project for a command line tool to convert <b>wave</b> f
 <li>Windows</li>
     <ul>
         <li>The code has been tested with Visual Studio 2015.</li>
-        <li>Pre compiled mp3lame and pthread are included (only Release versions).</li>
+        <li>Pre compiled mp3lame(VS2015) and pthread are included (only Release versions).</li>
         <li>Using CMake (gui or cli) on Windows you can generate Visual Studio project out of source files.</li>
         <li>If you want Debug mode, you have to compile libmp3lame and pthread in debug mode yourself!</li>
     </ul>
