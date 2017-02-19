@@ -1,18 +1,22 @@
+#CMake directives for project CINEMO/wav2mp3
+#Copyright Feb. 2017, WWW.EMBEDONIX.COM
+#Author: Saeid Yazdani
+
 cmake_minimum_required(VERSION 3.5)
 project(cinemo)
 
 set(CMAKE_CXX_STANDARD 11)
 
 #platform specific stuff
-if (WIN32) 
-	
-	# NOTES FOR COMPILING ON WINDOWS:
-	# since lamelibrary and pthread for win included with this repository are
-	# not compiled in debug mode, the only supported configuration will be Release
-	# feel free to add your own debug compiled libraries and change this cmake file.
-	# Then, do not forget about library linking down below :P
+if (WIN32)
 
-	set(CMAKE_CONFIGURATION_TYPES "Release" CACHE STRING "" FORCE)
+    # NOTES FOR COMPILING ON WINDOWS:
+    # since lamelibrary and pthread for win included with this repository are
+    # not compiled in debug mode, the only supported configuration will be Release
+    # feel free to add your own debug compiled libraries and change this cmake file.
+    # Then, do not forget about library linking down below :P
+
+    set(CMAKE_CONFIGURATION_TYPES "Release" CACHE STRING "" FORCE)
     add_definitions(-DWIN32)
     include_directories(include/win/)
 
@@ -39,41 +43,41 @@ add_executable(wav2mp3 ${SOURCE_FILES})
 #Preparing libraries for linkage
 if (WIN32)
 
-	#change to ' ${CMAKE_CURRENT_SOURCE_DIR}/lib/ReleaseSSE2/x86 ' for SSE2 support
-	set(LIBS_DIR_x86_RELESAE  ${CMAKE_CURRENT_SOURCE_DIR}/lib/Release/x86)
+    #change to ' ${CMAKE_CURRENT_SOURCE_DIR}/lib/ReleaseSSE2/x86 ' for SSE2 support
+    set(LIBS_DIR_x86_RELESAE  ${CMAKE_CURRENT_SOURCE_DIR}/lib/Release/x86)
 
-	#for static linking	
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    #for static linking
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 
-	#LIBS
-	set(LIBS_DIR_x86_RELESAE  ${CMAKE_CURRENT_SOURCE_DIR}/lib/Release/x86)
+    #LIBS
+    set(LIBS_DIR_x86_RELESAE  ${CMAKE_CURRENT_SOURCE_DIR}/lib/Release/x86)
     set(MP3LAME_LIBRARY ${LIBS_DIR_x86_RELESAE}/libmp3lame-static)
     set(${MP3LAME_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/win)
 
     #link Release
     target_link_libraries(wav2mp3
-    			MSVCRT.LIB
-                ${LIBS_DIR_x86_RELESAE}/pthreadVC2.lib
-                ${LIBS_DIR_x86_RELESAE}/libmp3lame-static.lib
-                ${LIBS_DIR_x86_RELESAE}/libmpghip-static.lib)
+            MSVCRT.LIB
+            ${LIBS_DIR_x86_RELESAE}/pthreadVC2.lib
+            ${LIBS_DIR_x86_RELESAE}/libmp3lame-static.lib
+            ${LIBS_DIR_x86_RELESAE}/libmpghip-static.lib)
 
 else ()
 
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-	include( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Findmp3lame.cmake)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+    include( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Findmp3lame.cmake)
     find_library(MP3LAME_LIBRARY mp3lame.a) #static lib
 
-	#MP3 LAME ON LINUX
-	if (MP3LAME_FOUND)
+    #MP3 LAME ON LINUX
+    if (MP3LAME_FOUND)
 
-    set(EXTRA_LIBRARIES ${EXTRA_LIBRARIES} ${MP3LAME_LIBRARY})
-    message(STATUS "MP3LAME Library was found in " ${MP3LAME_LIBRARY})
-    target_link_libraries(wav2mp3 pthread mp3lame)
+        set(EXTRA_LIBRARIES ${EXTRA_LIBRARIES} ${MP3LAME_LIBRARY})
+        message(STATUS "MP3LAME Library was found in " ${MP3LAME_LIBRARY})
+        target_link_libraries(wav2mp3 pthread mp3lame)
 
-	elseif (!MP3LAM_FOUND)
+    elseif (!MP3LAM_FOUND)
 
-    message(ERROR "mp3lame library is necessary!")
+        message(ERROR "mp3lame library is necessary!")
 
-	endif (MP3LAME_FOUND)
+    endif (MP3LAME_FOUND)
 
 endif ()

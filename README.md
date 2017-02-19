@@ -4,19 +4,6 @@ This is an experimental project for a command line tool to convert <b>wave</b> f
 <br /> <br />
 <b>What is provided?</b>
 <ul>
-<<<<<<< HEAD
-<li>At the moment, only PCM formatted files are supported:</li>
-<ul>
-<li>MONO: u8, s16, u16</li>
-<li>STEREO: u8, s16, u16</li>
-</ul>
-<li>Threaded encoding using pthreads, check <b>'posix'</b> branch.</li>
-<li>A minimalistic approach to parse RIFF format is provided</li>
-</ul>
-#What to come
-<ul>
-<li>Support for Microsoft Windows</li>
-=======
 <li>Support for both GNU/Linux and Windows platforms.</li>
 <li>At the moment, only PCM formatted files are supported:</li>
 <ul>
@@ -25,7 +12,6 @@ This is an experimental project for a command line tool to convert <b>wave</b> f
 </ul>
 <li>Threaded encoding using pthreads (Linux and Windows).</li>
 <li>A minimalistic approach to parse RIFF format is included.</li>
->>>>>>> posix
 </ul>
 <b>Compile guide</b>
 <ul>

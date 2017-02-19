@@ -33,11 +33,7 @@ using std::cout;
 using std::endl;
 using namespace cinemo;
 
-<<<<<<< HEAD
-int main(int argc, char *argv[]) {
-=======
 int main(int argc, char* argv[]) {
->>>>>>> posix
 
     args::printCopyrights();
     args::Options options;

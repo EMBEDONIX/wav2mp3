@@ -64,12 +64,12 @@ namespace cinemo {
                                        const args::Options& options) {
 
             long numThreads = getCpuCoreCount() * THREADS_PER_CORE;
-			if(lw.size() < numThreads)	{
+            if (lw.size() < numThreads) { //prevents overkill ;)
 				numThreads = lw.size();
 			}
 
             //TODO use vector instead of new[]
-            WorkParams* jp = divideWork(lw, numThreads);
+            WorkParams* wp = divideWork(lw, numThreads);
 			pthread_t* threads = new pthread_t[numThreads];
 			int* tCreateResults = new int[numThreads];
 			int* tJoinResults = new int[numThreads];
@@ -78,9 +78,9 @@ namespace cinemo {
 
 			//create threads
 			for(int i = 0; i < numThreads; ++i)	{
-				jp[i].options = options;
+                wp[i].options = options;
 				tCreateResults[i] = pthread_create(&threads[i], nullptr,
-					doWork, &jp[i]);
+                                                   doWork, &wp[i]);
 			}
 
 			//wait for threads to finish
@@ -91,16 +91,17 @@ namespace cinemo {
 
             for (int i = 0; i < numThreads; i++) {
                 if (options.verbose) {
-                    if (!tCreateResults[i] || tJoinResults[i]) {
+                    if (tCreateResults[i] != 0 || tJoinResults[i] != 0) {
                         cout << "There was a problem with Thread #" << i
                              << endl;
                     }
                 }
-
-                jp[i].works.clear();
+                //clear vector inside the workparams of thread[i]
+                wp[i].works.clear();
             }
 
-            delete[] threads, tCreateResults, tJoinResults, jp;
+            //free the allocated memory
+            delete[] threads, tCreateResults, tJoinResults, wp;
         }
 
         void doSingleThreadedConversion(const vector<LameWrapper*>& lw,
