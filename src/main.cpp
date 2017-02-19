@@ -22,15 +22,10 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <chrono>
 #include <iomanip>
-
-#ifdef WIN32
-#else
-
-#include <zconf.h>
-#endif
+#include <algorithm>
 
 #include "utils.hpp"
-#include "args.hpp"
+#include "threading.hpp"
 
 using std::vector;
 using std::string;
@@ -38,15 +33,18 @@ using std::cout;
 using std::endl;
 using namespace cinemo;
 
+<<<<<<< HEAD
 int main(int argc, char *argv[]) {
+=======
+int main(int argc, char* argv[]) {
+>>>>>>> posix
 
     args::printCopyrights();
-
-    bool optVerbose(false);
+    args::Options options;
     string workDir;
     vector<LameWrapper*> lw;
 
-    int retVal = args::processArgs(argc, argv, optVerbose, lw);
+    int retVal = args::processArgs(argc, argv, options, lw);
 
     if (retVal > 0) {
         return retVal;
@@ -56,57 +54,62 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    long numCores = -1;
-#ifdef WIN32
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-    numCores = sysinfo.dwNumberOfProcessors;
-#else
-    numCores = sysconf(_SC_NPROCESSORS_ONLN);
-#endif
+    //Filter out files which will not be converted due to errors
+    int lwSizeBeforeFilter = lw.size();
+    cout << "Checking for incompatible files...\n" << endl;
+    lw.erase(std::remove_if(begin(lw), end(lw),
+                            [&](const LameWrapper* file) {
+                                return checkAndPrintFileValidity(*file,
+                                                                 options);
+                            }), end(lw));
 
-    if (numCores <= 0) {
-        numCores = 2;
+    int removed = lwSizeBeforeFilter - lw.size();
+    if (removed > 0) {
+        cout << "\n" << removed << " Files removed from encoding queue due to"
+             << " incompatibility reasons!"
+             << endl;
     }
 
-    cout << "There are " << lw.size()
+    //sort files by size, descending, "may help with performance ;)"
+    std::sort(begin(lw), end(lw),
+              [](const LameWrapper* w1, const LameWrapper* w2) {
+                  return w1->getHeader().FileSize > w2->getHeader().FileSize;
+              });
+
+    cout << "\nThere are " << lw.size()
          << " wave files to be encoded to mp3.";
     cout << endl;
-
 
     //Time measurement
     auto startTime = std::chrono::system_clock::now();
 
-    //Do the actual work!
-    for (auto& work : lw) {
-        if (!work->isValidWaveFile()) {
-            cout << work->getFileName()
-                 << " Appears to be invalid or corrupted."
-                 << endl;
-            continue;
-        }
-        cout << "\nStarting conversion of " << work->getFileName() << endl;
-        if (optVerbose) {
-            work->printWaveInfo();
-        }
-        cout << "Converting...";
-        if (optVerbose) {
-            cout << endl;
-        }
-        if (work->convertToMp3()) {
-            cout << "Done." << endl;
-        } else {
-            cout << "canceled." << endl;
-        }
+    //Do the work
+    if (!options.noThread) {
+        threading::doMultiThreadedConversion(lw, options);
+    } else { //single thread mode for comparison with -n switch
+        threading::doSingleThreadedConversion(lw, options);
     }
 
-    //Calculate and print duration
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>
             (std::chrono::system_clock::now() - startTime);
-    cout << "Encode time: "
+
+    //write encoding results
+    int success = 0, failure = 0;
+    for_each(begin(lw), end(lw), [&](const LameWrapper* lw) {
+        if (lw->isFinished())
+            success++;
+        else
+            failure++;
+    });
+
+    cout << "\nConverted " << success << " files and skipped "
+         << failure << "." << endl;
+
+    cout << "\nTotal conversion time: "
          << std::fixed << std::setprecision(3) << elapsed.count() / 1000.0
          << " seconds." << endl;
 
     lw.clear();
+
     return 0;
 }

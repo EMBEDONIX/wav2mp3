@@ -18,10 +18,14 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 // Created by saeid on 12.02.17.
 //
 
-#include "args.hpp"
 #include <iostream>
+#include "args.hpp"
 
 #include "utils.hpp"
+
+#ifdef WIN32
+#include "win/dirent.h"
+#endif
 
 
 using std::cout;
@@ -30,7 +34,7 @@ using std::string;
 using std::vector;
 namespace cinemo {
 
-    int args::processArgs(int argc, char* argv[], bool& optVerbose,
+    int args::processArgs(int argc, char* argv[], args::Options& options,
                           vector<LameWrapper*>& lw) {
 
         string workDir;
@@ -41,6 +45,25 @@ namespace cinemo {
         workDir = argv[0];
 
         if (argc == 1) {
+
+#ifdef WIN32
+			//If no arguments given, this code finds the current exe directory
+			//FIXME this assumes system is not UNICODE
+			HMODULE hModule = GetModuleHandleW(nullptr);
+			WCHAR buffer[MAX_PATH];
+			GetModuleFileNameW(hModule, buffer, MAX_PATH);
+			char path[MAX_PATH * 2];
+			std::wcstombs(path, buffer, MAX_PATH * 2);
+			string exePath(path);
+			int rIndex = exePath.find_last_of(PATH_SEPARATOR);
+			if(rIndex == 0 || rIndex == string::npos) {
+				cout << "Can not determine the current executable directory,"
+					<< " please pass the directory as an argument."
+					<< " Use -h for more information.";
+				return 1;
+			}
+			workDir = exePath.substr(0, rIndex);
+#endif
             getWorkingDirectoryFromExec(workDir);
         } else if (argc == 2 || argc == 3) {
             arg1 = string(argv[1]);
@@ -52,9 +75,15 @@ namespace cinemo {
                     wh::printFlags();
                     return 0;
                 } else if (arg1.find("v") == 1) {
-                    optVerbose = true;
+                    options.verbose = true;
                     if (argc < 3) {
-                        workDir.append("/");
+                        getWorkingDirectoryFromExec(workDir);
+                    } else if (argc == 3) {
+                        workDir = string(argv[2]);
+                    }
+                } else if (arg1.find("n") == 1) {
+                    options.noThread = true;
+                    if (argc < 3) {
                         getWorkingDirectoryFromExec(workDir);
                     } else if (argc == 3) {
                         workDir = string(argv[2]);
@@ -66,7 +95,6 @@ namespace cinemo {
                 }
             } else {
                 workDir = string(argv[1]);
-                workDir.append("/");
                 getWorkingDirectoryFromExec(workDir);
             }
         }
@@ -74,7 +102,7 @@ namespace cinemo {
         if (isValidWorkDirectory(workDir)) {
             cout << "Looking for wave files in " << workDir << endl;
             if (!getWaveFiles(workDir, lw)) {
-                cout << "Can not find any WAV file in " << workDir << endl;
+                cout << "Can not find any WAV file(s) in " << workDir << endl;
             }
         } else {
             cout << workDir << " Is not a directory." << endl;
@@ -102,8 +130,11 @@ namespace cinemo {
                 << " under the same name with mp3 extension.\n"
                 << "\"wav2mp3 [-v] [current directory/path]\"\n\tsame as above"
                 << " but with verbose output messages.\n"
+                << "\"wav2mp3 [-n] [current directory/path]\"\n\tsame as above"
+                << " but not using threads! used for comparison only!\n"
                 << "\"wav2mp3 -e\"\n\tprints explanation about error/warning flags.\n"
-                << "\"wav2mp3 -h\"\n\tprints this help."
+                << "\"wav2mp3 -h\"\n\tprints this help.\nNote: [-v] and [-n] can not"
+                << " be used at the same time (yet!)."
                 << endl;
     }
 

@@ -132,7 +132,6 @@ namespace wh {
         /** Possible problems and warnings during parsing the wave file */
         std::bitset<8> WarningFlags = 0;
         /** Flags for errors during parsing if it is not 0, file is invalid */
-//FIXME ErrorFlags should be const/readonly for users of the struct
         std::bitset<8> ErrorFlags = 0;
         /** Total size of the file in bytes (including header and data) */
         uint32_t FileSize = 0;

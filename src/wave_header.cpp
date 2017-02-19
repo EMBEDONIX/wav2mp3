@@ -22,7 +22,6 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <fstream>
-#include <cstring>
 #include <iomanip>
 
 using std::cout;
@@ -45,18 +44,18 @@ namespace wh {
 
         std::ifstream f(file, std::ios::in | std::ios::binary |
                               std::ios::ate);
-        //generate wave header struct
+
         WaveHeader* const wh = new WaveHeader;
 
-        if (f && !f.good()) {
+        if (!f || !f.good()) {
             wh->ErrorFlags.set(static_cast<int>(ERROR_FileIo), 1);
             return wh;
         }
 
         //Check for file size requirements
-        long fSize = f.tellg();
+        long fSize = f.tellg(); //file is opened at the end
         wh->File = file;
-        wh->FileSize = (uint32_t) fSize;
+        wh->FileSize = static_cast<uint32_t>(fSize);
 
         if (fSize < WaveMinLength) {
             f.close();
@@ -89,7 +88,7 @@ namespace wh {
         f.read(&buff[0], 4);
         wh->WaveId = string(&buff[0], 4);
         if (wh->WaveId != WaveWaveIdString) {
-            wh->WarningFlags.set(static_cast<int>(ERROR_NoWaveChunk), 1);
+            wh->ErrorFlags.set(static_cast<int>(ERROR_NoWaveChunk), 1);
             return wh; //because there is no point in reading rest of the file
         }
 
@@ -97,8 +96,8 @@ namespace wh {
         long posBeforeHeaderSearch = static_cast<long>(f.tellg());
         header_pos fmt, fact, data, List;
         f.read(&buff[0], WaveBufferSize);
-        size_t read = (size_t) (static_cast<long>(f.tellg()) -
-                                posBeforeHeaderSearch);
+        size_t read = static_cast<size_t>(static_cast<long>(f.tellg()) -
+	        posBeforeHeaderSearch);
         //for fmt and fact there is no guranatee which comes first
         //so the search function is called twice
         fmt = searchForHeader(buff, read, WaveFormatString);
@@ -179,7 +178,7 @@ namespace wh {
                   sizeof(wh->BitsPerSample));
 
         //check if file is standard fmt with 16 fmt bytes or extended!
-        long readSoFar = ((long)(file.tellg()) - dp.second - 4); //4 is for "fmt "
+        long readSoFar = (static_cast<long>(file.tellg()) - dp.second - 4); //4 is for "fmt "
         long leftToRead = wh->FormatSize - readSoFar;
 
         if(leftToRead == 0) { //Standard FMT read is complete
@@ -200,11 +199,6 @@ namespace wh {
             }
             return;
         }
-
-/*        //format is extended, still work to do ;)
-        //how many bytes left to read?
-        file.read(reinterpret_cast<char*>(&wh->ExtensionSize),
-                  sizeof(wh->ExtensionSize));*/
 
         //standard extension sizes are 0 or 22 (0 is set by default in the struct)
         if(wh->ExtensionSize != 0 && wh->ExtensionSize != 22) {
@@ -238,7 +232,7 @@ namespace wh {
                                header_pos dp) {
         file.seekg(dp.second, std::ios::beg);
         file.read(reinterpret_cast<char*>(&wh->DataSize), sizeof(wh->DataSize));
-        wh->DataBegin = (uint32_t) file.tellg();
+        wh->DataBegin = static_cast<uint32_t>(file.tellg());
         //in a correctly formatted wave file, we should reach end of file
         //after "DataSize" bytes
         //TODO check if file ends at where it should end! (mind the pad byte if exists)
@@ -248,18 +242,11 @@ namespace wh {
                                    header_pos dp) {
         //FIXME figure out how to read LIST header chunks...
         //no source for it yet :(
-
-//        file.seekg(dp.second, std::ios::beg);
-//        char buff[WaveBufferSize];
-//        //get format size
-//        file.read(&buff[0], 4);
-//        wh->FactSize = convert4CharTo16_BigEndian(&buff[0]);
-
     }
 
     uint32_t convert4CharTo16_BigEndian(char* const buff) {
-        return (uint32_t) (buff[0] | (buff[1] << 8) | (buff[2] << 16) |
-                           (buff[3] << 24));
+        return static_cast<uint32_t>(buff[0] | (buff[1] << 8) | (buff[2] << 16) |
+	        (buff[3] << 24));
     }
 
     void printWaveHeader(const WaveHeader& wh) {
@@ -354,7 +341,7 @@ namespace wh {
     header_pos searchForHeader(char* buff, size_t size, const string& s) {
         header_pos dp(false, -1);
         string b(buff, size);
-        int pos = (int) b.find(s);
+        int pos = static_cast<int>(b.find(s));
 
         if (pos >= 0) {
             dp.first = true;

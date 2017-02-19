@@ -31,7 +31,12 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "wave_header.hpp"
+
+#if WIN32
+#include "win/lame.h"
+#else
 #include "lame/lame.h"
+#endif
 
 using std::string;
 
@@ -45,8 +50,9 @@ namespace cinemo {
         const wh::WaveHeader* const wh;
         bool isBusy;
         bool isDone;
+        int quality = 3;
 
-        int getLameFlags(lame_t l, int quality);
+        int getLameFlags(lame_t l) const;
         bool encodeAlreadyMp3(const string& in, const string& out,
                               const lame_t& lame);
 
@@ -55,7 +61,7 @@ namespace cinemo {
         // encodeChannels_BlockAlign_BitDepthPerSample
         // e.g. stereo, 4byte, 16 bit = encodeStereo_4_16(...)
 
-        bool encodeMono_1_8(const string& in, const string& out,
+        bool encodeMono_1_8 (const string& in, const string& out,
                         const lame_t& lame);
         bool encodeMono_2_16(const string& in, const string& out,
                             const lame_t& lame);
@@ -67,8 +73,8 @@ namespace cinemo {
 
     public:
 
-        static const int WAV_BUFF_SIZE = 1024 * 100;
-        static const int MP3_BUFF_SIZE = 1024 * 100;
+        static const int WAV_BUFF_SIZE = 1024 * 100 * 2;
+        static const int MP3_BUFF_SIZE = 1024 * 100 * 2;
 
         //FIXME parameters are ambiguous....just use full path instead
         LameWrapper(const string &dir, const string &file);
@@ -80,7 +86,7 @@ namespace cinemo {
          * @param quality The quality ratio. 0 = highest (default), 9 = lowest.
          * @return true on success, false on failure
          */
-        bool convertToMp3(int quality = 0);
+        bool convertToMp3();
 
         /**
          * @brief Returns the wave header object of the associated wave file to this instance.
@@ -95,7 +101,17 @@ namespace cinemo {
          *  to encode a WAV file into MP3.
          * @return true if valid, false if invalid
          */
-        bool isValidWaveFile() const { return !wh->ErrorFlags.any(); }
+        bool isValidWaveFile() const {
+            return !wh->ErrorFlags.any() /*&& !wh->WarningFlags.any()*/;
+        }
+
+        /**
+         * @brief Set the quality of encoding
+         * @param quality Quality index (0 = highest, 9 = lowest)
+         */
+        void setQuality(int quality);
+
+        int getQuality() const { return quality; }
 
         string getDir() const { return dir; }
 
@@ -105,17 +121,15 @@ namespace cinemo {
 
         bool isConverting() const { return isBusy; }
 
-        void printWaveInfo();
+        bool isFinished() const { return isDone; }
+
+        void printWaveInfo() const;
 
         //Operator overloads
-
         //delete copy assignment operator
         LameWrapper& operator=(const LameWrapper&) = delete;
-
         LameWrapper(const LameWrapper&) = delete;
-
         LameWrapper() = default;
-
     };
 }
 

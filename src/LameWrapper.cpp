@@ -31,24 +31,25 @@ using std::endl;
 namespace cinemo {
 
     LameWrapper::LameWrapper(const string& dir, const string& file)
-            : dir(dir), file(file), path(dir + "/" + file), isBusy(false),
-              isDone(false), wh(wh::parseWaveHeader(path)) {
+            : dir(dir), file(file), path(dir + "/" + file), wh(wh::parseWaveHeader(path)),
+              isBusy(false), isDone(false) {
     }
 
     LameWrapper::~LameWrapper() {
+        cout << getFileName() << " is being destructed!" << endl;
         delete wh;
     }
 
-    void LameWrapper::printWaveInfo() {
+    void LameWrapper::printWaveInfo() const{
         if (wh != nullptr) {
             wh::printWaveHeader(getHeader());
         }
     }
 
-    int LameWrapper::getLameFlags(lame_t l, int quality) {
+    int LameWrapper::getLameFlags(lame_t l) const {
         //get information from wave file
         int32_t sample_rate = wh->SampleRate;
-        int32_t byte_rate = wh->ByteRate;
+        //int32_t byte_rate = wh->ByteRate;
         int16_t channels = wh->NumberOfChannels;
 
         lame_set_quality(l, quality);
@@ -83,16 +84,12 @@ namespace cinemo {
         return lame_init_params(l);
     }
 
-    bool LameWrapper::convertToMp3(int quality) {
+    bool LameWrapper::convertToMp3() {
 
         if (wh->ErrorFlags.any()) {
             cout << "This file does not appear to be a valid WAV file!" << endl;
         }
 
-        //check if given quality argument is valid
-        if (quality < 0 || quality > 9) {
-            quality = 0; //set to default
-        }
 
         //setup lame struct
         lame_t l;
@@ -100,7 +97,7 @@ namespace cinemo {
 
 
         //finalize lame params
-        if (getLameFlags(l, quality) < 0) {
+        if (getLameFlags(l) < 0) {
             cout << "Error in setting lame parameters!" << endl;
             return false;
         }
@@ -127,7 +124,7 @@ namespace cinemo {
                                                                  "mp3"), l);
                                 break; //mono 16bit end
                             default:
-                                cout << "Encoding of files with bit depth of "
+                                cout << "\tEncoding of files with bit depth of "
                                      << wh->BitsPerSample
                                      << " is not yet implemented!";
                                 break;
@@ -152,7 +149,7 @@ namespace cinemo {
                                 break;
 
                             default:
-                                cout << "Encoding of files with bit depth of "
+                                cout << "\tEncoding of files with bit depth of "
                                      << wh->BitsPerSample
                                      << " is not yet implemented!";
                                 break;
@@ -161,7 +158,7 @@ namespace cinemo {
                         break;
 
                     default:
-                        cout << "Conversion of wave files with "
+                        cout << "\tConversion of wave files with "
                              << wh->NumberOfChannels
                              << " channels is not supported"
                              << endl;
@@ -175,16 +172,12 @@ namespace cinemo {
                 break;
 
             default: //all other cases
-                cout << "Conversion of files with format 0x" << std::hex
+                cout << "\tConversion of files with format 0x" << std::hex
                      << +wh->FormatAudioType
                      << std::dec << " (" << wh->FormatAudioType << ")"
                      << " is not yet supported."
                      << endl;
                 break;
-        }
-
-        if (!isDone) {
-            cout << getFullPath() << " Was not converted!" << endl;
         }
 
         lame_close(l);
@@ -204,7 +197,7 @@ namespace cinemo {
             return false;
         }
 
-        std::streamsize read = 0, write = 0;
+        std::streamsize read, write;
 
         unsigned char wav_buff[WAV_BUFF_SIZE];
         short wav_buff_converted[WAV_BUFF_SIZE];
@@ -223,7 +216,7 @@ namespace cinemo {
             } else { //encoding
 
                 for (int i = 0; i < read; i++) {
-                    wav_buff_converted[i] = (short) (wav_buff[i] - 0x80) << 8;
+                    wav_buff_converted[i] = static_cast<short>(wav_buff[i] - 0x80) << 8;
                 }
 
                 write = lame_encode_buffer(lame,
@@ -250,7 +243,7 @@ namespace cinemo {
             return false;
         }
 
-        std::streamsize read = 0, write = 0;
+        std::streamsize read, write;
 
         short int wav_buff[WAV_BUFF_SIZE];
         unsigned char mp3_buff[MP3_BUFF_SIZE];
@@ -268,7 +261,7 @@ namespace cinemo {
                                           MP3_BUFF_SIZE);
             } else { //encoding
                 write = lame_encode_buffer(lame, &wav_buff[0], nullptr,
-                                           (const int) (read / 2), mp3_buff,
+                                           static_cast<const int>(read / 2), mp3_buff,
                                            MP3_BUFF_SIZE);
             }
             mp3.write(reinterpret_cast<char*>(&mp3_buff), write);
@@ -294,9 +287,8 @@ namespace cinemo {
             return false;
         }
 
-        std::streamsize read = 0, write = 0;
+        std::streamsize read, write;
 
-        short int wav_buff[WAV_BUFF_SIZE]; //all channels
         char wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel
         char wav_buff_r[WAV_BUFF_SIZE / 2]; //right channel
         unsigned char mp3_buff[MP3_BUFF_SIZE];
@@ -305,7 +297,7 @@ namespace cinemo {
 
         do {
             //read from wave file
-            wav.read(&wav_buff_l[0], sizeof(wav_buff[0]) * WAV_BUFF_SIZE);
+            wav.read(&wav_buff_l[0], sizeof(short int) * WAV_BUFF_SIZE);
             //getChunkAsStereo8(wav_buff, wav_buff_l, wav_buff_r, WAV_BUFF_SIZE);
             read = wav.gcount();
 
@@ -317,7 +309,7 @@ namespace cinemo {
                 write = lame_encode_buffer(lame,
                                            reinterpret_cast<short int*>(&wav_buff_l[0]),
                                            reinterpret_cast<short int*>(&wav_buff_r[0]),
-                                           (const int) read / 2, mp3_buff,
+                                           static_cast<const int>(read) / 2, mp3_buff,
                                            MP3_BUFF_SIZE);
             }
 
@@ -345,9 +337,9 @@ namespace cinemo {
             return false;
         }
 
-        std::streamsize read = 0, write = 0;
+        std::streamsize read, write;
 
-        short int wav_buff[WAV_BUFF_SIZE]; //all channels
+        //short int wav_buff[WAV_BUFF_SIZE]; //all channels
         short int wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel
         short int wav_buff_r[WAV_BUFF_SIZE / 2]; //right channel
         unsigned char mp3_buff[MP3_BUFF_SIZE];
@@ -383,9 +375,18 @@ namespace cinemo {
 
     bool LameWrapper::encodeAlreadyMp3(const string& in, const string& out,
                                        const lame_t& lame) {
-        cout << "File is already encoded as MP3, just change the extension!!"
+        cout << "\tFile is already encoded as MP3, just change the extension!!"
              << endl;
         return false;
+    }
+
+    void LameWrapper::setQuality(int quality) {
+        //check if given quality argument is valid
+        if (quality < 0 || quality > 9) {
+            this->quality = 3; //set to default
+        } else {
+            this->quality = quality;
+        }
     }
 
 }
