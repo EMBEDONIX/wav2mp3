@@ -90,6 +90,13 @@ namespace cinemo {
 			//TODO check the create and join results
 
             delete[] threads, tCreateResults, tJoinResults;
+
+#ifdef WIN32
+#ifdef PTW32_STATIC_LIB
+			pthread_win32_thread_detach_np();
+			pthread_win32_process_detach_np();
+#endif
+#endif
         }
 
         void doSingleThreadedConversion(const vector<LameWrapper*>& lw,
@@ -143,6 +150,7 @@ namespace cinemo {
 
 				lw->convertToMp3();
 			});
+
 			return static_cast<void*>(nullptr);
 		}
     }

@@ -296,7 +296,7 @@ enum {
 #  define ENOTRECOVERABLE 44
 #endif
 
-#include "E:\Work\pthreads-w32-2-9-1-release\Pre-built.2\include\sched.h"
+#include <sched.h>
 
 /*
  * To avoid including windows.h we define only those things that we

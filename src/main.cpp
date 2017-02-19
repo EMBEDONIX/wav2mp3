@@ -108,5 +108,6 @@ int main(int argc, char* argv[]) {
          << " seconds." << endl;
 
     lw.clear();
+
     return 0;
 }
