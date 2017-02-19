@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
              << endl;
     }
 
-    //sort files by size "may help with performance ;)"
+    //sort files by size, descending, "may help with performance ;)"
     std::sort(begin(lw), end(lw),
               [](const LameWrapper* w1, const LameWrapper* w2) {
                   return w1->getHeader().FileSize > w2->getHeader().FileSize;

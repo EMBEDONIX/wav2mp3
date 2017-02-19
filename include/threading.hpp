@@ -25,10 +25,18 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include "LameWrapper.hpp"
 #include "args.hpp"
 
+#define JOBS_PER_CORE	2
+
 using std::vector;
 
 namespace cinemo {
     namespace threading {
+
+		struct JobParams {
+			int threadId;
+			args::Options options; //will be a copy!
+			vector<LameWrapper*> works;
+		};
 
         /**
          * @brief Performs the encoding work with multiple threads
@@ -46,7 +54,17 @@ namespace cinemo {
         void doSingleThreadedConversion(const vector<LameWrapper*>& lw,
                                         const args::Options& options);
 
-
+		/**
+		* @brief Divide encoding work between threads.
+		*	Note: Since there are no shared resources between jobs,
+		* There is no need for fancy pooling/queue systems!
+		* @param lw vector of {@see LameWrapper} pointers
+		* @param Number of threads
+		* @return Array of JobParams (will have 'numThreads' elements)
+		*/
+		static JobParams* divideWork(const vector<LameWrapper*>& lw,
+			long numThreads);
+			
 
         /**
         * @brief Function for performing encoding on a thread
