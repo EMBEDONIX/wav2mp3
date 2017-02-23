@@ -67,9 +67,9 @@ namespace cinemo {
          */
         enum WaveParseWarnings {
             /** No warnings during header parsing */
-                    WARNING_SizeMismatch = 0,
+            WARNING_SizeMismatch = 0,
             /** Happens if extension size is not 22 or data is not immediately followed by fmt */
-                    WARNING_NoneStandardExtension = 1
+            WARNING_NoneStandardExtension = 1
         };
 
         /**
@@ -77,17 +77,17 @@ namespace cinemo {
          */
         enum WaveErrorFlags {
             /** Error if can not open and seek through the file */
-                    ERROR_FileIo = 0,
+            ERROR_FileIo = 0,
             /** Wave file should be at least 32 byte */
-                    ERROR_FileTooSmall = 1,
+            ERROR_FileTooSmall = 1,
             /** RIFF chunk header does not exist */
-                    ERROR_NoRiffChunk = 2,
+            ERROR_NoRiffChunk = 2,
             /** WAVE chunk header does not exist */
-                    ERROR_NoWaveChunk = 3,
+            ERROR_NoWaveChunk = 3,
             /** fmt chunk header does not exist */
-                    ERROR_NoFmtChunk = 4,
+            ERROR_NoFmtChunk = 4,
             /** Data chunk header does not exist */
-                    ERROR_NoDataChunk = 5
+            ERROR_NoDataChunk = 5
         };
 
         /**
@@ -114,7 +114,7 @@ namespace cinemo {
             WAT_IBM_ALAW = 258,
             WAT_ADPCM = 259,
             /** Must be an extension */
-                    WAT_EXTENSION = 65534,
+            WAT_EXTENSION = 65534,
             WAT_EXPIRIMENTAL = 65535
         };
 
@@ -171,7 +171,6 @@ namespace cinemo {
             bool hasList = false;
             uint32_t ListSize = 0;
 
-
             //FUNCTIONS
             /**
              * @brief Check if the file is in extended format
@@ -216,7 +215,6 @@ namespace cinemo {
         header_pos searchForHeader(char* buff, size_t size, const string& s);
 
         void printFlags();
-
     }
 }
 

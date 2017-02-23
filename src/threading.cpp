@@ -70,38 +70,39 @@ namespace cinemo {
             if (lw.size() < numThreads) { //prevents overkill ;)
                 numThreads = lw.size();
             }
+            
+			//TODO use vector instead of new[]
+			WorkParams* wp = divideWork(lw, numThreads);
+			pthread_t* threads = new pthread_t[numThreads];
+			int* tCreateResults = new int[numThreads];
+			int* tJoinResults = new int[numThreads];
 
-            //TODO use vector instead of new[]
-            WorkParams* wp = divideWork(lw, numThreads);
-            pthread_t* threads = new pthread_t[numThreads];
-            int* tCreateResults = new int[numThreads];
-            int* tJoinResults = new int[numThreads];
+			cout << "\nMulti-threaded Conversion is in progress..." << endl;
 
-            cout << "\nConversion is in progress..." << endl;
+			//create threads
+			for (int i = 0; i < numThreads; ++i) {
+				wp[i].options = options;
+				wp[i].threadId = i;
+				tCreateResults[i] = pthread_create(&threads[i], nullptr,
+					doWork, &wp[i]);
+			}
 
-            //create threads
-            for (int i = 0; i < numThreads; ++i) {
-                wp[i].options = options;
-                tCreateResults[i] = pthread_create(&threads[i], nullptr,
-                                                   doWork, &wp[i]);
-            }
-
-            //wait for threads to finish
-            for (int i = 0; i < numThreads; ++i) {
-                tJoinResults[i] = pthread_join(threads[i], nullptr);
-            }
+			//wait for threads to finish
+			//since files were sorted by size before, waiting for last threads to first
+			//is going to be faster (at least theoritically!)
+			for (int i = numThreads - 1; i >= 0; --i) {
+				tJoinResults[i] = pthread_join(threads[i], nullptr);
+			}
 
 
-            for (int i = 0; i < numThreads; i++) {
-                if (options.verbose) {
-                    if (tCreateResults[i] != 0 || tJoinResults[i] != 0) {
-                        cout << "There was a problem with Thread #" << i
-                             << endl;
-                    }
-                }
-                //clear vector inside the workparams of thread[i]
-                wp[i].works.clear();
-            }
+			for (int i = 0; i < numThreads; i++) {
+				wp[i].works.clear(); //clear work vector of thread
+
+										//check for errors
+				if (tCreateResults[i] != 0 || tJoinResults[i] != 0) {
+					cout << "There was a problem with Thread #" << i << endl;
+				}
+			}
 
             //free the allocated memory
             delete[] threads, tCreateResults, tJoinResults, wp;
@@ -109,12 +110,12 @@ namespace cinemo {
 
         void doSingleThreadedConversion(const vector<LameWrapper*>& lw,
                                         const args::Options& options) {
-            cout << "\nConversion is in progress..." << endl;
+            cout << "\nSingle-threaded conversion is in progress..." << endl;
 
             for (auto& work : lw) {
+				cout << "Thread 0" << " => " << work->getFileName()
+					<< endl;
                 if (options.verbose) {
-                    cout << "Thread 0:" << " => " << work->getFileName()
-                         << endl;
                     work->printWaveInfo();
                 }
                 work->convertToMp3();
@@ -128,7 +129,6 @@ namespace cinemo {
 
             while (ja < lw.size()) {
                 for (int i = 0; i < numThreads && ja < lw.size(); ++i) {
-                    wp[i].threadId = i;
                     wp[i].works.push_back(lw[ja++]);
                 }
             }
@@ -140,21 +140,18 @@ namespace cinemo {
             WorkParams* wp = static_cast<WorkParams*>(arg);
             for_each(begin(wp->works), end(wp->works),
                      [&](LameWrapper* lw) {
-
-                         //print some information if verbose option is true
-                         if (wp->options.verbose) {
-                             pthread_mutex_lock(&mutex); //syncs outstream!
-                             cout << "\nThread #" << wp->threadId
-                                  << " => " << lw->getFileName() << endl;
-                             lw->printWaveInfo();
-                             pthread_mutex_unlock(&mutex);
+						pthread_mutex_lock(&mutex); //syncs outstream!
+						cout << "Thread #" << wp->threadId
+							<< " => " << lw->getFileName() << endl;
+                        if (wp->options.verbose) {
+							lw->printWaveInfo();
                          }
+						pthread_mutex_unlock(&mutex);
 
-                         lw->convertToMp3();
-
+                        lw->convertToMp3();
                      });
 
-            return static_cast<void*>(nullptr);
+			return static_cast<void*>(nullptr);
         }
     }
 }

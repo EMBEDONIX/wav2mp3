@@ -25,7 +25,7 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #include "LameWrapper.hpp"
 #include "args.hpp"
 
-#define THREADS_PER_CORE    2
+#define THREADS_PER_CORE    1
 
 using std::vector;
 
@@ -70,7 +70,6 @@ namespace cinemo {
         */
         static WorkParams* divideWork(const vector<LameWrapper*>& lw,
                                       long numThreads);
-
 
         /**
         * @brief Function for performing encoding on a thread

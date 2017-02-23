@@ -29,18 +29,18 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 #define CINEMO_LAMEWRAPPER_HPP
 
 #include <string>
+#include <memory>
 
 #include "wave_header.hpp"
 
 #if WIN32
 #include "win/lame.h"
 #else
-
 #include "lame/lame.h"
-
 #endif
 
 using std::string;
+using std::unique_ptr;
 
 namespace cinemo {
 
@@ -49,15 +49,12 @@ namespace cinemo {
         string dir;
         string file;
         string path;
-        const wh::WaveHeader* const wh;
+		unique_ptr<wh::WaveHeader> wh;
         bool isBusy;
         bool isDone;
         int quality = 3;
 
         int getLameFlags(lame_t l) const;
-
-        bool encodeAlreadyMp3(const string& in, const string& out,
-                              const lame_t& lame);
 
         /************** ENCODE FUNCTIONS BEG *************/
         // the following private functions are named by following convention
@@ -75,6 +72,9 @@ namespace cinemo {
 
         bool encodeStereo_4_16(const string& in, const string& out,
                                const lame_t& lame);
+
+		bool encodeAlreadyMp3 (const string& in, const string& out,
+			const lame_t& lame);
         /************** ENCODE FUNCTIONS END *************/
 
     public:
@@ -84,6 +84,11 @@ namespace cinemo {
         static const int MP3_BUFF_SIZE = 1024 * 100;
 
         //FIXME parameters are ambiguous....just use full path instead
+		/**
+		* @brief Constructs a LameWrapper object
+		* @param dir Directory of files 
+		* @param file Name fo the file
+		*/
         LameWrapper(const string& dir, const string& file);
 
         ~LameWrapper();

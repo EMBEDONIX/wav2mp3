@@ -89,21 +89,21 @@ int main(int argc, char* argv[]) {
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>
             (std::chrono::system_clock::now() - startTime);
 
-    //write encoding results
-    int success = 0, failure = 0;
-    for_each(begin(lw), end(lw), [&](const LameWrapper* item) {
-        if (item->isFinished())
-            success++;
-        else
-            failure++;
-    });
-
-    cout << "\nConverted " << success << " files and skipped "
-         << failure << "." << endl;
-
     cout << "\nTotal conversion time: "
          << std::fixed << std::setprecision(3) << elapsed.count() / 1000.0
          << " seconds." << endl;
+
+	//write encoding results
+	int success = 0, failure = 0;
+	for_each(begin(lw), end(lw), [&](const LameWrapper* item) {
+		if (item->isFinished())
+			success++;
+		else
+			failure++;
+	});
+
+	cout << "\nConverted " << success << " files and skipped "
+		<< failure << "." << endl;
 
     lw.clear();
 
