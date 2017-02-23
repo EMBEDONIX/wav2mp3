@@ -38,7 +38,7 @@ endif ()
 
 
 find_library(MP3LAME_LIBRARY
-        NAMES mp3lame
+        NAMES libmp3lame.a
         HINTS
         PATH_SUFFIXES lib64 lib
         PATHS
