@@ -48,7 +48,7 @@ namespace cinemo {
         static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
         long getCpuCoreCount() {
-            long numCores;
+            long numCores = 0;
 #ifdef WIN32
             SYSTEM_INFO sysinfo;
             GetSystemInfo(&sysinfo);
