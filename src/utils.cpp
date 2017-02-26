@@ -60,13 +60,13 @@ namespace cinemo {
 
     bool getWorkingDirectoryFromExec(string& exec) {
 
-#ifdef WIN32
+//#ifdef WIN32
         if (*exec.rbegin() != PATH_SEPARATOR) {
             exec = exec.append(1, PATH_SEPARATOR);
         }
-#else
+//#else
         exec = exec.substr(0, string(exec).find_last_of(PATH_SEPARATOR));
-#endif
+//#endif
 
         return isValidWorkDirectory(exec);
     }

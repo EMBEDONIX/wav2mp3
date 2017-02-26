@@ -18,7 +18,6 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 // Created by saeid on 04.02.17.
 //
 
-#include <iostream>
 #include <fstream>
 
 #include "LameWrapper.hpp"
