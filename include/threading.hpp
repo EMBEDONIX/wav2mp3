@@ -33,9 +33,9 @@ namespace cinemo {
     namespace threading {
 
         /**
-         * @brief Struct for passing works to pthreads
+         * @brief Struct for passing encoding jobs to pthreads
          */
-        struct WorkParams {
+        struct EncodeParams {
             /** ID of the thread assigned to process this jobs */
             int threadId;
             /** Copy of command line options parsed at the start of program */
@@ -49,7 +49,7 @@ namespace cinemo {
          * @param lw vector of {@see LameWrapper} pointers
          * @param options command line options {@see args::Options}
          */
-        void doMultiThreadedConversion(const vector<LameWrapper*>& lw,
+        void doMultiThreadedConversion(vector<LameWrapper*>& lw,
                                        const args::Options& options);
 
         /**
@@ -66,17 +66,24 @@ namespace cinemo {
         *   There is no need for fancy pooling/queue systems!
         * @param lw vector of {@see LameWrapper} pointers
         * @param Number of threads
-        * @return Array of JobParams (will have 'numThreads' elements)
+        * @return Array of EncodeParams (will have 'numThreads' elements)
         */
-        static WorkParams* divideWork(const vector<LameWrapper*>& lw,
+        static EncodeParams* divideWork(const vector<LameWrapper*>& lw,
                                       long numThreads);
 
         /**
         * @brief Function for performing encoding on a thread
-        * @param arg Pointer to a WorkParams object
+        * @param arg Pointer to a EncodeParams object
         * @return nothing
         */
-        static void* doWork(void* arg);
+        static void* doEncoding(void* arg);
+
+		/**
+		* @brief Function for performing init on threads
+		* @param arg Pointer to a EncodeParams object
+		* @return nothing
+		*/
+		static void* doInit(void* arg);
 
         /**
          * @brief Tries to get number of available cores of host system

@@ -44,6 +44,7 @@ using std::end;
 namespace cinemo {
     namespace threading {
 
+		static const long ThreadCount = getCpuCoreCount() * THREADS_PER_CORE;
         //used only for organizing cout calls
         static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -63,28 +64,56 @@ namespace cinemo {
             return 4; //rule of thumb! assume quad core processor
         }
 
-        void doMultiThreadedConversion(const vector<LameWrapper*>& lw,
+        void doMultiThreadedConversion(vector<LameWrapper*>& lw,
                                        const args::Options& options) {
+			//prevents thread spawn/join for only 1 file
+			if(lw.size() == 1) {
+				doSingleThreadedConversion(lw, options);
+				return;
+			}
 
-            long numThreads = getCpuCoreCount() * THREADS_PER_CORE;
-            if (lw.size() < numThreads) { //prevents overkill ;)
-                numThreads = lw.size();
+			long numThreads = ThreadCount;
+            if (lw.size() < ThreadCount) { //prevents overkill ;)
+				numThreads = lw.size();
             }
-            
-			//TODO use vector instead of new[]
-			WorkParams* wp = divideWork(lw, numThreads);
-			pthread_t* threads = new pthread_t[numThreads];
-			int* tCreateResults = new int[numThreads];
-			int* tJoinResults = new int[numThreads];
 
 			cout << "\nMulti-threaded Conversion is in progress..." << endl;
+            
+			//TODO use vector instead of new[]
+			EncodeParams* initParams = divideWork(lw, numThreads); //for init
+			pthread_t* threads = new pthread_t[numThreads];
+			int* tCreateResults = new int[numThreads];
+			int* tJoinResults = new int[numThreads];	
 
-			//create threads
+			//create init threads
 			for (int i = 0; i < numThreads; ++i) {
-				wp[i].options = options;
-				wp[i].threadId = i;
 				tCreateResults[i] = pthread_create(&threads[i], nullptr,
-					doWork, &wp[i]);
+					doInit, &initParams[i]);
+			}
+
+			for (int i = 0; i < numThreads; ++i) {
+				tJoinResults[i] = pthread_join(threads[i], nullptr);
+				initParams[i].works.clear();
+			}
+
+			delete[] initParams; //dont need this params anymore
+
+			//init is done
+			//sort files by size (may help the performance)
+			std::sort(begin(lw), end(lw),
+			            [](const LameWrapper* w1, const LameWrapper* w2) {
+			                return w1->getHeader().FileSize > w2->getHeader().FileSize;
+			            });
+			
+			//divide work again, after sorting
+			EncodeParams* workParams = divideWork(lw, numThreads);
+
+			//create encoding threads
+			for (int i = 0; i < numThreads; ++i) {
+				workParams[i].options = options;
+				workParams[i].threadId = i;
+				tCreateResults[i] = pthread_create(&threads[i], nullptr,
+					doEncoding, &workParams[i]);
 			}
 
 			//wait for threads to finish
@@ -92,20 +121,21 @@ namespace cinemo {
 			//is going to be faster (at least theoritically!)
 			for (int i = numThreads - 1; i >= 0; --i) {
 				tJoinResults[i] = pthread_join(threads[i], nullptr);
+				workParams[i].works.clear(); //clear work vector of thread
 			}
 
-
 			for (int i = 0; i < numThreads; i++) {
-				wp[i].works.clear(); //clear work vector of thread
-
-										//check for errors
+				//check for errors
 				if (tCreateResults[i] != 0 || tJoinResults[i] != 0) {
 					cout << "There was a problem with Thread #" << i << endl;
 				}
 			}
 
             //free the allocated memory
-            delete[] threads, tCreateResults, tJoinResults, wp;
+			delete[] threads;
+			delete[] tCreateResults;
+			delete[] tJoinResults; 
+			delete[] workParams;
         }
 
         void doSingleThreadedConversion(const vector<LameWrapper*>& lw,
@@ -113,7 +143,8 @@ namespace cinemo {
             cout << "\nSingle-threaded conversion is in progress..." << endl;
 
             for (auto& work : lw) {
-				cout << "Thread 0" << " => " << work->getFileName()
+				work->init();
+				cout << "MainThread" << " => " << work->getFileName()
 					<< endl;
                 if (options.verbose) {
                     work->printWaveInfo();
@@ -122,9 +153,9 @@ namespace cinemo {
             }
         }
 
-        static WorkParams* divideWork(const vector<LameWrapper*>& lw,
+        static EncodeParams* divideWork(const vector<LameWrapper*>& lw,
                                       long numThreads) {
-            WorkParams* wp = new WorkParams[numThreads];
+            EncodeParams* wp = new EncodeParams[numThreads];
             int ja = 0; //Jobs Assigned
 
             while (ja < lw.size()) {
@@ -136,21 +167,29 @@ namespace cinemo {
             return wp;
         }
 
-        static void* doWork(void* arg) {
-            WorkParams* wp = static_cast<WorkParams*>(arg);
+		static void* doInit(void* arg) {
+			EncodeParams* wp = static_cast<EncodeParams*>(arg);
+			for_each(begin(wp->works), end(wp->works),
+				[&](LameWrapper* lw) {
+				lw->init();
+				});
+			return static_cast<void*>(nullptr);
+        }
+
+        static void* doEncoding(void* arg) {
+            EncodeParams* wp = static_cast<EncodeParams*>(arg);
             for_each(begin(wp->works), end(wp->works),
                      [&](LameWrapper* lw) {
-						pthread_mutex_lock(&mutex); //syncs outstream!
-						cout << "Thread #" << wp->threadId
-							<< " => " << lw->getFileName() << endl;
-                        if (wp->options.verbose) {
-							lw->printWaveInfo();
-                         }
-						pthread_mutex_unlock(&mutex);
+				pthread_mutex_lock(&mutex); //syncs outstream!
+				cout << "Thread #" << wp->threadId
+					<< " => " << lw->getFileName() << endl;
+                if (wp->options.verbose) {
+					lw->printWaveInfo();
+                }
+				pthread_mutex_unlock(&mutex);
 
-                        lw->convertToMp3();
-                     });
-
+                lw->convertToMp3();
+            });			
 			return static_cast<void*>(nullptr);
         }
     }

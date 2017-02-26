@@ -27,11 +27,19 @@ namespace cinemo {
 
     LameWrapper::LameWrapper(const string& dir, const string& file)
             : dir(dir), file(file), path(dir + "/" + file),
-              wh(std::move(wh::parseWaveHeader(path))), message_buffer(""),
+              wh(), message_buffer(""), initDone(false),
               isBusy(false), isDone(false) {
     }
 
     LameWrapper::~LameWrapper() {
+    }
+
+	void LameWrapper::init() {
+		if (!initDone) {
+			wh.reset(std::move(wh::parseWaveHeader(path)));
+			message_buffer.clear();
+			initDone = true;
+		}
     }
 
     void LameWrapper::printWaveInfo() const {
@@ -80,7 +88,10 @@ namespace cinemo {
 
     bool LameWrapper::convertToMp3() {
 
-		message_buffer.clear();
+		if(!initDone) {
+			message_buffer.append("init() was not called on this instance.");
+			return false;
+		}
 
         if (wh->ErrorFlags.any()) {
 			message_buffer.append("Contains errors [error flags = " + wh->ErrorFlags.to_string() + "]");

@@ -45,40 +45,13 @@ int main(int argc, char* argv[]) {
 
     int retVal = args::processArgs(argc, argv, options, lw);
 
-    if (retVal > 0) {
+    if (retVal > 0) { //error in arguments
         return retVal;
     }
 
-    if (lw.size() == 0) {
+    if (lw.size() == 0) { //no file to work on!
         return 0;
     }
-
-	int removed = 0;
-//    //Filter out files which will not be converted due to errors
-//    int lwSizeBeforeFilter = lw.size();
-//    cout << "Checking for incompatible files...\n" << endl;
-//    lw.erase(std::remove_if(begin(lw), end(lw),
-//                            [&](const LameWrapper* file) {
-//                                return checkAndPrintFileValidity(*file,
-//                                                                 options);
-//                            }), end(lw));
-//
-//    int removed = lwSizeBeforeFilter - lw.size();
-//    if (removed > 0) {
-//        cout << "\n" << removed << " Files removed from encoding queue due to"
-//             << " incompatibility reasons!"
-//             << endl;
-//    }
-
-    //sort files by size, descending, "may help with performance ;)"
-    std::sort(begin(lw), end(lw),
-              [](const LameWrapper* w1, const LameWrapper* w2) {
-                  return w1->getHeader().FileSize > w2->getHeader().FileSize;
-              });
-
-    cout << "\nThere are " << lw.size()
-         << " wave files to be encoded to mp3.";
-    cout << endl;
 
     //Do the work
     if (!options.noThread) {
@@ -88,6 +61,7 @@ int main(int argc, char* argv[]) {
     }
 
 	//write encoding results
+	//TODO better to be moved into threading.cpp 
 	int success = 0, failure = 0;
 	for_each(begin(lw), end(lw), [&](const LameWrapper* item) {
 		if (item->isFinished())
@@ -99,10 +73,10 @@ int main(int argc, char* argv[]) {
 		}
 	});
 
-	cout << "-----------------------------------------------------" 
+	cout << "-------------------------------------" 
+		<< "\nConversion Report:\n"
 		<< "\nConverted:\t" << success 
-		<< "\nSkipped:\t" << failure
-		<< "\nInvalid:\t" << removed << endl;
+		<< "\nSkipped:\t" << failure << endl;
 
 	//calculate and print total runtime
 	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>
@@ -111,7 +85,7 @@ int main(int argc, char* argv[]) {
 	cout << "Runtime:\t"
 		<< std::fixed << std::setprecision(3) << elapsed.count() / 1000.0
 		<< "s\n" 
-		<< "-----------------------------------------------------" << endl;
+		<< "-------------------------------------" << endl;
 
     return 0;
 }

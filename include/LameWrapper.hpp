@@ -51,6 +51,7 @@ namespace cinemo {
         string path;
 		unique_ptr<wh::WaveHeader> wh;
 		string message_buffer;
+		bool initDone;
         bool isBusy;
         bool isDone;
         int quality = 3;
@@ -81,8 +82,8 @@ namespace cinemo {
     public:
 
         //TODO this buffer sizes work OK, but maybe its better to do as formula in lame header
-        static const int WAV_BUFF_SIZE = 1024 * 100;
-        static const int MP3_BUFF_SIZE = 1024 * 100;
+        static const int WAV_BUFF_SIZE = 1024 * 10;
+        static const int MP3_BUFF_SIZE = 1024 * 10;
 
         //FIXME parameters are ambiguous....just use full path instead
 		/**
@@ -94,9 +95,13 @@ namespace cinemo {
 
         ~LameWrapper();
 
+		/**
+		* @brief Prepares the wrapper for work. This function must be called before encoding!
+		*/
+		void init();
+
         /**
          * @brief Performs the encoding of WAV to MP3.
-         * @param quality The quality ratio. 0 = highest (default), 9 = lowest.
          * @return true on success, false on failure
          */
         bool convertToMp3();
@@ -106,17 +111,6 @@ namespace cinemo {
          * @return wh WaveHeader object parsed from wav file
          */
         wh::WaveHeader getHeader() const { return *wh; }
-
-        /**
-         * @brief Check if the wave header was parsed and is valid.
-         * Note:
-         *  This function should be called to check validity before attempting
-         *  to encode a WAV file into MP3.
-         * @return true if valid, false if invalid
-         */
-        bool isValidWaveFile() const {
-            return !wh->ErrorFlags.any() /*&& !wh->WarningFlags.any()*/;
-        }
 
 		/**
 		* @brief Get the error messages during encoding.
@@ -148,9 +142,7 @@ namespace cinemo {
         //Operator overloads
         //delete copy assignment operator
         LameWrapper& operator=(const LameWrapper&) = delete;
-
         LameWrapper(const LameWrapper&) = delete;
-
         LameWrapper() = default;
     };
 }

@@ -59,15 +59,9 @@ namespace cinemo {
     }
 
     bool getWorkingDirectoryFromExec(string& exec) {
-
-//#ifdef WIN32
         if (*exec.rbegin() != PATH_SEPARATOR) {
             exec = exec.append(1, PATH_SEPARATOR);
         }
-//#else
-        exec = exec.substr(0, string(exec).find_last_of(PATH_SEPARATOR));
-//#endif
-
         return isValidWorkDirectory(exec);
     }
 
@@ -102,34 +96,9 @@ namespace cinemo {
     }
 
     string changeExt(const string& in, const string& ext) {
-
         //by reaching here...file must have .wav at the end (ignore case)
         //this is handled while looking for files so no need to check again!
         //FIXME What would happen in case of unix hidden file ".wav" ???!!!!
         return in.substr(0, in.rfind('.') + 1) + ext;
-
-//        //FIXME currently wav is hardcoded
-//        std::regex regex("^(.*)\\.wav$");
-//        //FIXME only works with GCC 4.9+ (e.g. not with 4.8) and MSVC 12+
-//        return std::regex_replace(in, regex, string("$1." + ext).c_str());
-    }
-
-    //This function is here because it shouldnt  be called within a thread!
-    bool checkAndPrintFileValidity(const LameWrapper& lw,
-                                   const args::Options& options) {
-
-        if (!lw.isValidWaveFile()) {
-            std::cout << lw.getFileName()
-                      << " Appears to be invalid or corrupted.";
-            if (options.verbose) {
-                std::cout << " Flags = "
-                          << "Errors: " << lw.getHeader().ErrorFlags
-                          << ", Warnings: " << lw.getHeader().WarningFlags;
-            }
-            std::cout << std::endl;
-            return true;
-        }
-
-        return false;
     }
 }
