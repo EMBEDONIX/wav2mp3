@@ -205,7 +205,7 @@ namespace cinemo {
             }
 
             //standard extension sizes are 0 or 22 (0 is set by default in the struct)
-            if (wh->ExtensionSize != 0 || wh->ExtensionSize != WaveStandartdExtSize) {
+            if (wh->ExtensionSize != 0 && wh->ExtensionSize != WaveStandartdExtSize) {
                 wh->WarningFlags.set(
                         static_cast<int>(WARNING_NoneStandardExtension), 1);				
             } else if (wh->ExtensionSize == WaveStandartdExtSize) {
