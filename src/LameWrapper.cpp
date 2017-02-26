@@ -168,6 +168,41 @@ namespace cinemo {
                 }
                 break;
 
+			case wh::WaveAudioType::WAT_IEEE_FP:
+				switch (wh->NumberOfChannels){
+				case 1: //mono
+					switch(wh->BitsPerSample) {
+						case 32:
+							isDone = encodeMono_IEEE_32(getFullPath(),
+								changeExt(getFullPath(), "mp3"), l);
+							break;
+						case 64:
+							isDone = encodeMono_IEEE_64(getFullPath(),
+								changeExt(getFullPath(), "mp3"), l);
+							break;
+					}
+					break;
+
+				default:
+					break;
+
+				case 2: //stereo
+					switch (wh->BitsPerSample) {
+					case 32:
+						isDone = encodeStereo_IEEE_32(getFullPath(),
+							changeExt(getFullPath(), "mp3"), l);
+						break;
+					case 64:
+						isDone = encodeStereo_IEEE_64(getFullPath(),
+							changeExt(getFullPath(), "mp3"), l);
+						break;
+					}
+				}
+				break;
+				
+
+
+
             case wh::WaveAudioType::WAT_MPEG_3: //already MP3 !!!!
                 isDone = encodeAlreadyMp3(getFullPath(),
                                           changeExt(getFullPath(), "mp3"), l);
@@ -181,6 +216,9 @@ namespace cinemo {
 
         lame_close(l);
         isBusy = false;
+		if(!isDone)	{
+			message_buffer.append("(Not a supported format)");
+		}
         return isDone;
     }
 
@@ -373,7 +411,193 @@ namespace cinemo {
         return true;
     }
 
-    bool LameWrapper::encodeAlreadyMp3 (const string& in, const string& out,
+	bool LameWrapper::encodeMono_IEEE_32(const string& in, const string& out,
+		const lame_t& lame) {
+		std::ifstream wav(in, std::ios_base::in | std::ios_base::binary);
+		std::ofstream mp3(out, std::ios_base::out | std::ios_base::trunc |
+			std::ios_base::binary);
+
+		//just to make sure...
+		if (!wav.is_open() || !mp3.is_open()) {
+			message_buffer.append("Error in reading / writing source and destination files.");
+			return false;
+		}
+
+		std::streamsize read, write;
+
+		//short int wav_buff[WAV_BUFF_SIZE]; //all channels
+		short int wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel
+		unsigned char mp3_buff[MP3_BUFF_SIZE];
+
+		wav.ignore(wh->DataBegin); //skip to data
+
+		do {
+			wav.read(reinterpret_cast<char*>(&wav_buff_l), sizeof(short int) * 2);
+			read = wav.gcount();
+
+			if (read == 0) { //reading from wav file has ended!
+				write = lame_encode_flush(lame,
+					reinterpret_cast<unsigned char*>(&mp3_buff),
+					MP3_BUFF_SIZE);
+			}
+			else { //encoding
+				write = lame_encode_buffer_ieee_float(lame,
+					reinterpret_cast<float*>(&wav_buff_l[0]),
+					nullptr,
+					read / 4,
+					mp3_buff,
+					MP3_BUFF_SIZE);
+
+			}
+			mp3.write(reinterpret_cast<char*>(&mp3_buff), write);
+		} while (read != 0);
+
+		return true;
+    }
+
+	bool LameWrapper::encodeStereo_IEEE_32(const string& in, const string& out,
+		const lame_t& lame) {
+		std::ifstream wav(in, std::ios_base::in | std::ios_base::binary);
+		std::ofstream mp3(out, std::ios_base::out | std::ios_base::trunc |
+			std::ios_base::binary);
+
+		//just to make sure...
+		if (!wav.is_open() || !mp3.is_open()) {
+			message_buffer.append("Error in reading / writing source and destination files.");
+			return false;
+		}
+
+		std::streamsize read, write;
+
+		//short int wav_buff[WAV_BUFF_SIZE]; //all channels
+		short int wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel
+		short int wav_buff_r[WAV_BUFF_SIZE / 2]; //right channel
+		unsigned char mp3_buff[MP3_BUFF_SIZE];
+
+		wav.ignore(wh->DataBegin); //skip to data
+
+		do {
+			wav.read(reinterpret_cast<char*>(&wav_buff_l), sizeof(short int) * 2);
+			wav.read(reinterpret_cast<char*>(&wav_buff_r), sizeof(short int) * 2);
+			read = wav.gcount();
+
+			if (read == 0) { //reading from wav file has ended!
+				write = lame_encode_flush(lame,
+					reinterpret_cast<unsigned char*>(&mp3_buff),
+					MP3_BUFF_SIZE);
+			}
+			else { //encoding
+				write = lame_encode_buffer_ieee_float(lame,
+					reinterpret_cast<float*>(&wav_buff_l[0]),
+					reinterpret_cast<float*>(&wav_buff_l[0]),
+					read / 4,
+					mp3_buff,
+					MP3_BUFF_SIZE);
+
+			}
+			mp3.write(reinterpret_cast<char*>(&mp3_buff), write);
+		} while (read != 0);
+
+		wav.close();
+		mp3.close();
+
+		return true;
+	}
+
+	bool LameWrapper::encodeMono_IEEE_64(const string& in, const string& out,
+		const lame_t& lame) {
+		std::ifstream wav(in, std::ios_base::in | std::ios_base::binary);
+		std::ofstream mp3(out, std::ios_base::out | std::ios_base::trunc |
+			std::ios_base::binary);
+
+		//just to make sure...
+		if (!wav.is_open() || !mp3.is_open()) {
+			message_buffer.append("Error in reading / writing source and destination files.");
+			return false;
+		}
+
+		std::streamsize read, write;
+
+		//short int wav_buff[WAV_BUFF_SIZE]; //all channels
+		short int wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel
+		unsigned char mp3_buff[MP3_BUFF_SIZE];
+
+		wav.ignore(wh->DataBegin); //skip to data
+
+		do {
+			wav.read(reinterpret_cast<char*>(&wav_buff_l), sizeof(short int) * 4);
+			read = wav.gcount();
+
+			if (read == 0) { //reading from wav file has ended!
+				write = lame_encode_flush(lame,
+					reinterpret_cast<unsigned char*>(&mp3_buff),
+					MP3_BUFF_SIZE);
+			}
+			else { //encoding
+				write = lame_encode_buffer_ieee_double(lame,
+					reinterpret_cast<double*>(&wav_buff_l[0]),
+					nullptr,
+					read / 8,
+					mp3_buff,
+					MP3_BUFF_SIZE);
+
+			}
+			mp3.write(reinterpret_cast<char*>(&mp3_buff), write);
+		} while (read != 0);
+
+		return true;
+	}
+
+	bool LameWrapper::encodeStereo_IEEE_64(const string& in, const string& out,
+		const lame_t& lame) {
+		std::ifstream wav(in, std::ios_base::in | std::ios_base::binary);
+		std::ofstream mp3(out, std::ios_base::out | std::ios_base::trunc |
+			std::ios_base::binary);
+
+		//just to make sure...
+		if (!wav.is_open() || !mp3.is_open()) {
+			message_buffer.append("Error in reading / writing source and destination files.");
+			return false;
+		}
+
+		std::streamsize read, write;
+
+		//short int wav_buff[WAV_BUFF_SIZE]; //all channels
+		short int wav_buff_l[WAV_BUFF_SIZE / 2]; //left channel
+		short int wav_buff_r[WAV_BUFF_SIZE / 2]; //right channel
+		unsigned char mp3_buff[MP3_BUFF_SIZE];
+
+		wav.ignore(wh->DataBegin); //skip to data
+
+		do {
+			wav.read(reinterpret_cast<char*>(&wav_buff_l), sizeof(short int) * 4);
+			wav.read(reinterpret_cast<char*>(&wav_buff_r), sizeof(short int) * 4);
+			read = wav.gcount();
+
+			if (read == 0) { //reading from wav file has ended!
+				write = lame_encode_flush(lame,
+					reinterpret_cast<unsigned char*>(&mp3_buff),
+					MP3_BUFF_SIZE);
+			}
+			else { //encoding
+				write = lame_encode_buffer_ieee_double(lame,
+					reinterpret_cast<double*>(&wav_buff_l[0]),
+					reinterpret_cast<double*>(&wav_buff_l[0]),
+					read / 8,
+					mp3_buff,
+					MP3_BUFF_SIZE);
+
+			}
+			mp3.write(reinterpret_cast<char*>(&mp3_buff), write);
+		} while (read != 0);
+
+		wav.close();
+		mp3.close();
+
+		return true;
+	}
+	
+	bool LameWrapper::encodeAlreadyMp3 (const string& in, const string& out,
                                        const lame_t& lame) {
 		message_buffer.append("File appears to be already encoded as MP3!");
         return false;

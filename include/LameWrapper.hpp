@@ -63,6 +63,7 @@ namespace cinemo {
         // encodeChannels_BlockAlign_BitDepthPerSample
         // e.g. stereo, 4byte, 16 bit = encodeStereo_4_16(...)
 
+		//PCM
         bool encodeMono_1_8(const string& in, const string& out,
                             const lame_t& lame);
 
@@ -74,6 +75,16 @@ namespace cinemo {
 
         bool encodeStereo_4_16(const string& in, const string& out,
                                const lame_t& lame);
+
+		//IEEE 
+		bool encodeMono_IEEE_32(const string& in, const string& out,
+			const lame_t& lame);
+		bool encodeStereo_IEEE_32(const string& in, const string& out,
+			const lame_t& lame);
+		bool encodeMono_IEEE_64(const string& in, const string& out,
+			const lame_t& lame);
+		bool encodeStereo_IEEE_64(const string& in, const string& out,
+			const lame_t& lame);
 
 		bool encodeAlreadyMp3 (const string& in, const string& out,
 			const lame_t& lame);

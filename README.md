@@ -7,8 +7,8 @@ This is an experimental project for a command line tool to convert <b>wave</b> f
 <li>Support for both GNU/Linux and Windows platforms.</li>
 <li>At the moment, only PCM formatted files are supported:</li>
 <ul>
-<li>MONO: u8, s16, u16.</li>
-<li>STEREO: u8, s16, u16.</li>
+<li>MONO: u8, s16, u16, IEEE_32, IEEE_64.</li>
+<li>STEREO: u8, s16, u16, IEEE_32, IEEE_64.</li>
 </ul>
 <li>Threaded encoding using pthreads (Linux and Windows).</li>
 <li>A minimalistic approach to parse RIFF format is included.</li>
