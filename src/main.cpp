@@ -35,6 +35,9 @@ using namespace cinemo;
 
 int main(int argc, char* argv[]) {
 
+	//Time measurement
+	auto startTime = std::chrono::system_clock::now();
+
     args::printCopyrights();
     args::Options options;
     string workDir;
@@ -76,9 +79,6 @@ int main(int argc, char* argv[]) {
          << " wave files to be encoded to mp3.";
     cout << endl;
 
-    //Time measurement
-    auto startTime = std::chrono::system_clock::now();
-
     //Do the work
     if (!options.noThread) {
         threading::doMultiThreadedConversion(lw, options);
@@ -86,26 +86,32 @@ int main(int argc, char* argv[]) {
         threading::doSingleThreadedConversion(lw, options);
     }
 
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>
-            (std::chrono::system_clock::now() - startTime);
-
-    cout << "\nTotal conversion time: "
-         << std::fixed << std::setprecision(3) << elapsed.count() / 1000.0
-         << " seconds." << endl;
-
 	//write encoding results
 	int success = 0, failure = 0;
 	for_each(begin(lw), end(lw), [&](const LameWrapper* item) {
 		if (item->isFinished())
 			success++;
-		else
+		else {
 			failure++;
+			cout << "Error: '" << item->getFileName() << "' "
+				<< item->getErrorMessage() << endl;
+		}
 	});
 
-	cout << "\nConverted " << success << " files and skipped "
-		<< failure << "." << endl;
+	cout << "-----------------------------------------------------" 
+		<< "\nConverted " << success << " files, skipped "
+		<< failure << " due to encoding errors, " << removed 
+		<< " files where not compatible wave files with this program and " 
+		<< " where skipped the encoding phase." << endl;
 
-    lw.clear();
+	//calculate and print total runtime
+	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>
+		(std::chrono::system_clock::now() - startTime);
+
+	cout << "Total conversion time: "
+		<< std::fixed << std::setprecision(3) << elapsed.count() / 1000.0
+		<< " seconds.\n" 
+		<< "-----------------------------------------------------" << endl;
 
     return 0;
 }

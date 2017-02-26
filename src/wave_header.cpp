@@ -36,6 +36,7 @@ namespace cinemo {
         static const string WaveFactString = "fact";
         static const string WaveDataString = "data";
         static const string WaveListString = "LIST";
+        static const int WaveStandartdExtSize = 22;
         static const int WaveExtNormalGuidLength = 16;
         static const int WaveBufferSize = 256;
         static const int WaveMinLength = 44; //smallest possible wav file, with no audio!
@@ -204,19 +205,20 @@ namespace cinemo {
             }
 
             //standard extension sizes are 0 or 22 (0 is set by default in the struct)
-            if (wh->ExtensionSize != 0 && wh->ExtensionSize != 22) {
+            if (wh->ExtensionSize != 0 || wh->ExtensionSize != WaveStandartdExtSize) {
                 wh->WarningFlags.set(
-                        static_cast<int>(WARNING_NoneStandardExtension), 1);
-            }
-
-            file.read(reinterpret_cast<char*>(&wh->ValidBitsPerSample),
-                      sizeof(wh->ValidBitsPerSample));
-            file.read(reinterpret_cast<char*>(&wh->ChannelMask),
-                      sizeof(wh->ChannelMask));
-            file.read(reinterpret_cast<char*>(&wh->SubFormat[0]),
-                      sizeof(wh->SubFormat[0]) *
-                      (wh->ExtensionSize - 6)); //6 = 2 vbps, 4 cm
-
+                        static_cast<int>(WARNING_NoneStandardExtension), 1);				
+            } else if (wh->ExtensionSize == WaveStandartdExtSize) {
+				file.read(reinterpret_cast<char*>(&wh->ValidBitsPerSample),
+					sizeof(wh->ValidBitsPerSample)); //2
+				file.read(reinterpret_cast<char*>(&wh->ChannelMask),
+					sizeof(wh->ChannelMask)); //4
+				file.read(reinterpret_cast<char*>(&wh->SubFormat[0]),
+					sizeof(wh->SubFormat[0]) *
+					(wh->ExtensionSize - 6)); //16 byte, [6 = 2 vbps, 4 cm]
+			} else { //skip nonstandard extension to reach data...				
+				file.ignore(wh->ExtensionSize);
+			}
             //by reaching here the next 4 bytes should be "fact" (if it is available)
             // or "data" (other possibilities might exist!!!!)
             file.read(&buff[0], 4);

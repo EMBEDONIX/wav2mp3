@@ -18,21 +18,17 @@ along with EMBEDONIX/WAV2MP3.  If not, see <http://www.gnu.org/licenses/>.
 // Created by saeid on 04.02.17.
 //
 
-#include "LameWrapper.hpp"
-#include "utils.hpp"
-
 #include <iostream>
 #include <fstream>
-#include <regex>
 
-using std::cout;
-using std::endl;
+#include "LameWrapper.hpp"
+#include "utils.hpp"
 
 namespace cinemo {
 
     LameWrapper::LameWrapper(const string& dir, const string& file)
             : dir(dir), file(file), path(dir + "/" + file),
-              wh(std::move(wh::parseWaveHeader(path))),
+              wh(std::move(wh::parseWaveHeader(path))), message_buffer(""),
               isBusy(false), isDone(false) {
     }
 
@@ -95,7 +91,7 @@ namespace cinemo {
 
         //finalize lame params
         if (getLameFlags(l) < 0) {
-            cout << "Error in setting lame parameters!" << endl;
+			message_buffer.append("Error in setting lame parameters!\n");
             return false;
         }
 
@@ -121,9 +117,8 @@ namespace cinemo {
                                                                  "mp3"), l);
                                 break; //mono 16bit end
                             default:
-                                cout << "\tEncoding of files with bit depth of "
-                                     << wh->BitsPerSample
-                                     << " is not yet implemented!";
+								message_buffer.append("Encoding of files with bit depth of "	+
+									std::to_string(wh->BitsPerSample) + " is not yet implemented!\n");
                                 break;
 
                         }
@@ -146,19 +141,16 @@ namespace cinemo {
                                 break;
 
                             default:
-                                cout << "\tEncoding of files with bit depth of "
-                                     << wh->BitsPerSample
-                                     << " is not yet implemented!";
+								message_buffer.append("Encoding of files with bit depth of " +
+									std::to_string(wh->BitsPerSample) + " is not yet implemented!\n");
                                 break;
                         }
 
                         break;
 
                     default:
-                        cout << "\tConversion of wave files with "
-                             << wh->NumberOfChannels
-                             << " channels is not supported"
-                             << endl;
+						message_buffer.append("Encoding of  wave files with " +
+							std::to_string(wh->NumberOfChannels) + " is not yet implemented!\n");
                         break;
                 }
                 break;
@@ -169,11 +161,8 @@ namespace cinemo {
                 break;
 
             default: //all other cases
-                cout << "\tConversion of files with format 0x" << std::hex
-                     << +wh->FormatAudioType
-                     << std::dec << " (" << wh->FormatAudioType << ")"
-                     << " is not yet supported."
-                     << endl;
+				message_buffer.append("Encoding of  wave files with format " +
+					std::to_string(wh->FormatAudioType) + " is not yet implemented!\n");
                 break;
         }
 
@@ -331,8 +320,7 @@ namespace cinemo {
 
         //just to make sure...
         if (!wav.is_open() || !mp3.is_open()) {
-            cout << "Error in reading/writing source and destination files."
-                 << endl;
+			message_buffer.append("Error in reading / writing source and destination files.\n");
             return false;
         }
 
@@ -374,8 +362,7 @@ namespace cinemo {
 
     bool LameWrapper::encodeAlreadyMp3 (const string& in, const string& out,
                                        const lame_t& lame) {
-        cout << "\tFile is already encoded as MP3, just change the extension!!"
-             << endl;
+		message_buffer.append("File appears to be already encoded as MP3!\n");
         return false;
     }
 

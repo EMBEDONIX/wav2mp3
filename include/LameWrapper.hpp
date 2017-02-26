@@ -50,6 +50,7 @@ namespace cinemo {
         string file;
         string path;
 		unique_ptr<wh::WaveHeader> wh;
+		string message_buffer;
         bool isBusy;
         bool isDone;
         int quality = 3;
@@ -116,6 +117,13 @@ namespace cinemo {
         bool isValidWaveFile() const {
             return !wh->ErrorFlags.any() /*&& !wh->WarningFlags.any()*/;
         }
+
+		/**
+		* @brief Get the error messages during encoding.
+		*	If error message is empty, be happy!
+		* @return string error messages during encoding phase.
+		*/
+		string getErrorMessage() const { return message_buffer; }
 
         /**
          * @brief Set the quality of encoding
