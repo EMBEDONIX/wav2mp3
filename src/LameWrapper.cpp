@@ -80,7 +80,10 @@ namespace cinemo {
 
     bool LameWrapper::convertToMp3() {
 
+		message_buffer.clear();
+
         if (wh->ErrorFlags.any()) {
+			message_buffer.append("Contains errors [error flags = " + wh->ErrorFlags.to_string() + "]");
 			return false;
         }
 
@@ -90,7 +93,7 @@ namespace cinemo {
 
         //finalize lame params
         if (getLameFlags(l) < 0) {
-			message_buffer.append("Error in setting lame parameters!\n");
+			message_buffer.append("Error in setting lame parameters.");
             return false;
         }
 
@@ -117,7 +120,7 @@ namespace cinemo {
                                 break; //mono 16bit end
                             default:
 								message_buffer.append("Encoding of files with bit depth of "	+
-									std::to_string(wh->BitsPerSample) + " is not yet implemented!\n");
+									std::to_string(wh->BitsPerSample) + " is not yet implemented.");
                                 break;
 
                         }
@@ -141,7 +144,7 @@ namespace cinemo {
 
                             default:
 								message_buffer.append("Encoding of files with bit depth of " +
-									std::to_string(wh->BitsPerSample) + " is not yet implemented!\n");
+									std::to_string(wh->BitsPerSample) + " is not yet implemented.");
                                 break;
                         }
 
@@ -149,7 +152,7 @@ namespace cinemo {
 
                     default:
 						message_buffer.append("Encoding of  wave files with " +
-							std::to_string(wh->NumberOfChannels) + " is not yet implemented!\n");
+							std::to_string(wh->NumberOfChannels) + " channels is not yet implemented.");
                         break;
                 }
                 break;
@@ -161,7 +164,7 @@ namespace cinemo {
 
             default: //all other cases
 				message_buffer.append("Encoding of  wave files with format " +
-					std::to_string(wh->FormatAudioType) + " is not yet implemented!\n");
+					std::to_string(wh->FormatAudioType) + " is not yet implemented.");
                 break;
         }
 
@@ -319,7 +322,7 @@ namespace cinemo {
 
         //just to make sure...
         if (!wav.is_open() || !mp3.is_open()) {
-			message_buffer.append("Error in reading / writing source and destination files.\n");
+			message_buffer.append("Error in reading / writing source and destination files.");
             return false;
         }
 
@@ -361,7 +364,7 @@ namespace cinemo {
 
     bool LameWrapper::encodeAlreadyMp3 (const string& in, const string& out,
                                        const lame_t& lame) {
-		message_buffer.append("File appears to be already encoded as MP3!\n");
+		message_buffer.append("File appears to be already encoded as MP3!");
         return false;
     }
 

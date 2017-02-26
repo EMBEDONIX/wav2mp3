@@ -53,21 +53,22 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    //Filter out files which will not be converted due to errors
-    int lwSizeBeforeFilter = lw.size();
-    cout << "Checking for incompatible files...\n" << endl;
-    lw.erase(std::remove_if(begin(lw), end(lw),
-                            [&](const LameWrapper* file) {
-                                return checkAndPrintFileValidity(*file,
-                                                                 options);
-                            }), end(lw));
-
-    int removed = lwSizeBeforeFilter - lw.size();
-    if (removed > 0) {
-        cout << "\n" << removed << " Files removed from encoding queue due to"
-             << " incompatibility reasons!"
-             << endl;
-    }
+	int removed = 0;
+//    //Filter out files which will not be converted due to errors
+//    int lwSizeBeforeFilter = lw.size();
+//    cout << "Checking for incompatible files...\n" << endl;
+//    lw.erase(std::remove_if(begin(lw), end(lw),
+//                            [&](const LameWrapper* file) {
+//                                return checkAndPrintFileValidity(*file,
+//                                                                 options);
+//                            }), end(lw));
+//
+//    int removed = lwSizeBeforeFilter - lw.size();
+//    if (removed > 0) {
+//        cout << "\n" << removed << " Files removed from encoding queue due to"
+//             << " incompatibility reasons!"
+//             << endl;
+//    }
 
     //sort files by size, descending, "may help with performance ;)"
     std::sort(begin(lw), end(lw),
