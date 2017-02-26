@@ -99,18 +99,17 @@ int main(int argc, char* argv[]) {
 	});
 
 	cout << "-----------------------------------------------------" 
-		<< "\nConverted " << success << " files, skipped "
-		<< failure << " due to encoding errors, " << removed 
-		<< " files where not compatible wave files with this program and " 
-		<< " where skipped the encoding phase." << endl;
+		<< "\nConverted:\t" << success 
+		<< "\nSkipped:\t" << failure
+		<< "\nInvalid:\t" << removed << endl;
 
 	//calculate and print total runtime
 	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>
 		(std::chrono::system_clock::now() - startTime);
 
-	cout << "Total conversion time: "
+	cout << "Runtime:\t"
 		<< std::fixed << std::setprecision(3) << elapsed.count() / 1000.0
-		<< " seconds.\n" 
+		<< "s\n" 
 		<< "-----------------------------------------------------" << endl;
 
     return 0;
