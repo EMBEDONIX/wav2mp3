@@ -489,7 +489,7 @@ namespace cinemo {
 			else { //encoding
 				write = lame_encode_buffer_ieee_float(lame,
 					reinterpret_cast<float*>(&wav_buff_l[0]),
-					reinterpret_cast<float*>(&wav_buff_l[0]),
+					reinterpret_cast<float*>(&wav_buff_r[0]),
 					read / 4,
 					mp3_buff,
 					MP3_BUFF_SIZE);
@@ -582,7 +582,7 @@ namespace cinemo {
 			else { //encoding
 				write = lame_encode_buffer_ieee_double(lame,
 					reinterpret_cast<double*>(&wav_buff_l[0]),
-					reinterpret_cast<double*>(&wav_buff_l[0]),
+					reinterpret_cast<double*>(&wav_buff_r[0]),
 					read / 8,
 					mp3_buff,
 					MP3_BUFF_SIZE);
